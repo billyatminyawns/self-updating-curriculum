@@ -31,7 +31,11 @@ Human stops built in: F9 waits for a judgment call (conflicting sources), F3 sho
 2. **Slide 5, then switch to the browser** (8 min): Notion first (Workflow board → the critical card → play published vs. new take → the judgment card → drag to Published → Sources / Activity), then the Drift Inbox: it opens on the 7:42 AM Slack message → Start with the critical one → play today's line, play the fix, Approve & publish → Next → Edit the wording (Legal's wording, re-record) → Approve all → S for Slack (Priya republishes the Storyline course) → the judgment call → the two tasks → Courses: play the whole updated course.
 3. **Slides 6–9** (3 min): what just happened → where the fix goes back (the SCORM answer) → what stays human → bring us one stale course.
 
-Dashboard keys: `→`/`N` next item, `1`/`2` Inbox/Courses, `S` Slack panel, `H` How it works (agents, last night's log, sources, where fixes go back), `T` light/dark, `?` presenter notes, **Reset** back to 7:42 AM. Deep links: `#F11` opens the hotline item, `#courses` the courses view. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
+Dashboard keys: `→`/`N` next item, `1`/`2` Inbox/Courses, `S` Slack panel, `H` How it works (agents, last night's log, sources, standards, where fixes go back), `T` light/dark (light is the default and matches the Continuity Intelligence dashboard palette), `?` presenter notes, **Reset** back to 7:42 AM. Deep links: `#F11` opens the hotline item, `#courses` the courses view. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
+
+## Palette
+
+The demo (and the deck) use the Continuity Intelligence dashboard palette: pale gray page, white cards, dark slate text, amber for the active item and for drift, red for critical, blue for what changed and for Continuity, green for fixes and WellSaid, purple for things a person has to do. Tokens live at the top of `src/styles.css`; the dark theme is a secondary set under `[data-theme="dark"]`.
 
 ## Notion and the site work together
 

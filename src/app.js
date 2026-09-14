@@ -113,8 +113,8 @@ const readyIds = () => ORDER.filter(id => S.status[id] === 'open');
 
 /* ── chrome: toast, theme, sheets, help ──────────────────────────────────── */
 let toastT = 0; function toast(msg, ms = 3400) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms); }
-function applyTheme(t) { if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); else document.documentElement.removeAttribute('data-theme'); }
-function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; applyTheme(next); try { localStorage.setItem('suc-theme', next); } catch (_) {} }
+function applyTheme(t) { if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme'); }
+function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(next); try { localStorage.setItem('suc-theme', next); } catch (_) {} }
 try { const t = localStorage.getItem('suc-theme'); if (t) applyTheme(t); } catch (_) {}
 $('#theme').addEventListener('click', toggleTheme);
 $('#reset').addEventListener('click', () => { stopAll(); location.reload(); });
