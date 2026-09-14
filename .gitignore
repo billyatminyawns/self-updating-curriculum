@@ -1,0 +1,12 @@
+# build output kept locally; docs/ is the deployed copy
+dist/
+# raw WAV masters (14 MB, regenerable with scripts/render_audio.py)
+audio/raw/
+# not part of the hosted demo
+slides/
+archive/
+# noise
+.DS_Store
+~$*
+*.pyc
+__pycache__/

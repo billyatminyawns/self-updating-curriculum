@@ -1,0 +1,133 @@
+<title>Self-Updating Curriculum</title>
+<meta name="description" content="Drift Inbox: a working demo of AI agents that find outdated claims in a training library and re-voice the fixes with WellSaid. TechLearn 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/*__CSS__*/
+</style>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="product">Drift Inbox</span>
+      <span class="tb-sub">Continuity Intelligence + WellSaid</span>
+      <span class="ws-chip" id="ws-chip">Alder Mutual · L&amp;D</span>
+    </div>
+    <div class="tb-center"><span class="clock" id="clock"></span></div>
+    <div class="tb-right">
+      <button class="tb-btn" id="slack-toggle" title="Show or hide Slack (S)">Slack</button>
+      <button class="tb-btn icon" id="help" title="Presenter notes (?)" aria-label="Presenter notes">?</button>
+      <button class="tb-btn icon" id="theme" title="Light / dark (T)" aria-label="Switch light and dark">◐</button>
+      <button class="tb-btn" id="reset" title="Back to 7:42 AM">Reset demo</button>
+      <span class="avatar amber" id="me-avatar" title="Jordan Ellis · Senior Instructional Designer">JE</span>
+    </div>
+  </header>
+
+  <nav class="sidenav" aria-label="Sections">
+    <ul class="nav">
+      <li><button class="nav-btn active" data-view="inbox"><span class="ni" aria-hidden="true">▤</span>Inbox<span class="badge" id="inbox-badge"></span></button></li>
+      <li><button class="nav-btn" data-view="library"><span class="ni" aria-hidden="true">▦</span>Library</button></li>
+      <li><button class="nav-btn" data-view="sources"><span class="ni" aria-hidden="true">◉</span>Sources</button></li>
+      <li><button class="nav-btn" data-view="activity"><span class="ni" aria-hidden="true">≡</span>Activity</button></li>
+    </ul>
+    <div class="side-block">
+      <div class="side-label">Your courses · health</div>
+      <div class="health"><b class="num" id="my-health">64</b><div class="hbar"><i id="my-health-bar"></i></div></div>
+      <div class="side-note" id="my-health-note"></div>
+    </div>
+    <div class="side-block">
+      <div class="side-label">Next scan</div>
+      <div class="side-note">Tonight · 2:00 AM · <span id="src-count"></span> sources watched</div>
+    </div>
+    <div class="side-block grow">
+      <div class="side-label">Connected</div>
+      <ul class="integrations" id="integrations"></ul>
+    </div>
+    <div class="side-block agents">
+      <div class="side-label">Agents on this library</div>
+      <ul id="agents-mini"></ul>
+    </div>
+  </nav>
+
+  <main class="main" id="main">
+    <section class="view" id="view-inbox">
+      <header class="view-head">
+        <div>
+          <h1 class="vh-title">Inbox</h1>
+          <p class="vh-sub" id="inbox-sub"></p>
+        </div>
+        <div class="vh-actions">
+          <div class="filters" id="filters" role="tablist" aria-label="Filter findings"></div>
+          <button class="btn primary" id="approve-all">Approve all ready</button>
+        </div>
+      </header>
+      <div class="inbox">
+        <div class="ilist" id="ilist"></div>
+        <aside class="idetail" id="idetail" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <section class="view" id="view-library" hidden>
+      <header class="view-head">
+        <div><h1 class="vh-title">Library</h1><p class="vh-sub" id="library-sub"></p></div>
+        <div class="vh-actions"><span class="legend" id="lib-legend"></span></div>
+      </header>
+      <div class="library">
+        <div class="ltable" id="ltable"></div>
+        <aside class="idetail" id="ldetail"></aside>
+      </div>
+    </section>
+
+    <section class="view" id="view-sources" hidden>
+      <header class="view-head">
+        <div><h1 class="vh-title">Sources of truth</h1><p class="vh-sub">What the agents watch, when it moved, and which segments depend on it.</p></div>
+        <div class="vh-actions"><button class="btn" id="add-source">Add a source</button></div>
+      </header>
+      <div class="stable" id="stable"></div>
+    </section>
+
+    <section class="view" id="view-activity" hidden>
+      <header class="view-head">
+        <div><h1 class="vh-title">Activity</h1><p class="vh-sub">The audit trail: what the agents did overnight, and what people decided today.</p></div>
+        <div class="vh-actions"><button class="btn" id="replay-scan">Replay the 2:00 AM scan</button></div>
+      </header>
+      <div class="activity">
+        <div class="act-left">
+          <div class="tiles" id="tiles" role="img" aria-label="212 courses scanned"></div>
+          <div class="counters" id="counters"></div>
+        </div>
+        <div class="act-right">
+          <div class="side-label">Overnight · agents</div>
+          <ol class="log" id="scan-log"></ol>
+          <div class="side-label" style="margin-top:22px">Today · people</div>
+          <ol class="log today" id="today-log"><li class="empty">Nothing yet. Decisions you make in the inbox show up here.</li></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="slack" id="slack" aria-label="Slack channel">
+    <header class="sl-head">
+      <div class="sl-ch"><b># ld-content-ops</b><span id="sl-members"></span></div>
+      <span class="sl-app">Slack</span>
+    </header>
+    <div class="sl-msgs" id="sl-msgs"></div>
+    <div class="sl-composer"><span>Message #ld-content-ops</span><span class="sl-hint">⏎</span></div>
+  </aside>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<div class="modal" id="help-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal-head"><h2 id="help-title">Presenter notes</h2><button class="tb-btn icon" id="help-close" aria-label="Close">×</button></div>
+    <div class="modal-body" id="help-body"></div>
+  </div>
+</div>
+
+<script id="content-data" type="application/json">/*__CONTENT__*/</script>
+<script id="audio-data" type="application/json">/*__AUDIO__*/</script>
+<script>
+/*__JS__*/
+</script>

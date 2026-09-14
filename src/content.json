@@ -1,0 +1,243 @@
+{
+  "meta": { "date": "2026-09-15", "weekday": "Tuesday", "time": "7:42 AM", "event": "TechLearn 2026 · Austin, Texas", "app": "Drift Inbox", "tagline": "Continuity Intelligence + WellSaid" },
+  "company": {
+    "name": "Alder Mutual", "descriptor": "Regional property & casualty insurer · Austin, TX · 4,800 employees · 1,200 independent agents · fictional",
+    "lms": "Alder Learn", "video": "Kaltura",
+    "persona": { "name": "Jordan Ellis", "role": "Senior Instructional Designer", "initials": "JE" },
+    "integrations": ["Alder Learn (LMS)", "Rise 360", "Storyline 360", "Kaltura", "SharePoint", "Workday", "Slack", "ServiceNow"]
+  },
+  "library": {
+    "courses": 212, "segments": 3418, "narration": "61 h 20 m", "narrators": 9, "last_audit": "May 2025", "last_audit_months": 16,
+    "health_before": 71, "health_after": 96,
+    "formats": [ { "name": "Rise 360", "count": 98 }, { "name": "Storyline", "count": 64 }, { "name": "Video", "count": 31 }, { "name": "Virtual ILT decks", "count": 11 }, { "name": "Curriculum paths", "count": 8 } ],
+    "others": [
+      { "title": "Security Awareness 2024", "format": "Storyline", "owner": "Priya N.", "findings": 6, "critical": 1, "learners": "4,800", "note": "SMS one-time codes retired for passkeys (Jun 15); payment-change callback rule added after voice-clone fraud attempts" },
+      { "title": "Workplace Safety & Emergency Procedures", "format": "Rise 360", "owner": "Priya N.", "findings": 2, "critical": 1, "learners": "1,900", "note": "Assembly point moved after the 6th-floor relocation" },
+      { "title": "Manager Essentials: Performance Conversations", "format": "Rise 360", "owner": "Devon A.", "findings": 3, "critical": 0, "learners": "610", "note": "Annual review cycle replaced by quarterly check-ins" },
+      { "title": "Customer Care: Handling Complaints", "format": "Video", "owner": "Devon A.", "findings": 4, "critical": 0, "learners": "740", "note": "Escalation queue moved to ServiceNow" },
+      { "title": "Underwriting Fundamentals", "format": "Storyline", "owner": "Devon A.", "findings": 2, "critical": 0, "learners": "320", "note": "Rate filing references out of date" },
+      { "title": "Fraud Red Flags for Adjusters", "format": "Rise 360", "owner": "Priya N.", "findings": 3, "critical": 0, "learners": "900", "note": "New synthetic-identity indicators not covered" },
+      { "title": "Agency Portal Basics", "format": "Video", "owner": "Devon A.", "findings": 5, "critical": 0, "learners": "1,200", "note": "Portal redesign Aug 2026" }
+    ]
+  },
+  "sources": [
+    { "id": "ai", "name": "AI Acceptable Use Policy", "system": "v3.0 · SharePoint · Legal & IT", "date": "2026-08-03", "change": "Approved tools: Microsoft 365 Copilot and Alder Assist. Customer data allowed only in approved tools. A person must review AI-assisted customer communications before they are sent.", "was": "v1.0 (Mar 2024): generative AI tools not approved for business use.", "findings": ["F1", "F2", "F3"], "dependents": 9 },
+    { "id": "raio", "name": "Responsible AI Office", "system": "Org announcement · Slack directory", "date": "2026-08-10", "change": "AI Council renamed the Responsible AI Office; #ask-ai-council archived, questions go to #responsible-ai.", "findings": ["F4"], "dependents": 3 },
+    { "id": "claims", "name": "ClaimsCore release notes", "system": "Release 26.3 · Claims Technology", "date": "2026-08-26", "change": "Total-loss settlement moved from the Payments tab to the Settlement menu. “Hold for Review” renamed “Pend”.", "findings": ["F5", "F6", "V1"], "dependents": 7 },
+    { "id": "hybrid", "name": "Hybrid Work Policy", "system": "People team · effective Sep 1, 2026", "date": "2026-08-12", "change": "In-office expectation moves from two anchor days to three days a week, Tuesday through Thursday, for the Austin and Dallas hubs.", "findings": ["F7"], "dependents": 5 },
+    { "id": "leaders", "name": "Leadership directory", "system": "Workday", "date": "2026-08-17", "change": "Priya Raman named Chief Executive Officer; Elena Marsh retires September 30.", "findings": ["F8", "V2"], "dependents": 6 },
+    { "id": "benefits", "name": "Benefits Guide 2027", "system": "People team · PDF", "date": "2026-08-24", "change": "Paid parental leave increases from 12 to 16 weeks for births and placements after September 1, 2026.", "conflict": { "name": "People Portal FAQ", "system": "Intranet page · last edited Nov 2025", "says": "Parents receive 12 weeks of paid parental leave." }, "findings": ["F9"], "dependents": 4 },
+    { "id": "finance", "name": "Travel & Expense policy", "system": "Finance · effective Jul 1, 2026", "date": "2026-07-01", "change": "Concur retired. Navan for travel booking and expenses. Receipts required for anything over $25 (was $75).", "findings": ["F10"], "dependents": 6 },
+    { "id": "ethics", "name": "Speak Up program", "system": "Ethics & Compliance", "date": "2026-08-31", "change": "New hotline provider: 1-855-555-0199 and speakup.aldermutual.com. The old 1-800 number was disconnected August 31. Anti-retaliation policy unchanged.", "findings": ["F11"], "dependents": 3 },
+    { "id": "product", "name": "Personal Lines product bulletin", "system": "Product · PL-26-07", "date": "2026-07-20", "change": "HomeShield Plus renamed HomeShield Complete. Water backup coverage now included as standard (was an optional endorsement).", "findings": ["F12"], "dependents": 8 },
+    { "id": "catalog", "name": "Learning catalog", "system": "Alder Learn", "date": "2026-08-27", "change": "“Security Basics 2023” retired; replaced by “Security Essentials 2026”.", "findings": ["F12"], "dependents": 4 }
+  ],
+  "unchanged_sources": [
+    { "name": "Employee Handbook", "system": "People team · v12", "dependents": 41 },
+    { "name": "Brand & Style Guide", "system": "Marketing · v7", "dependents": 38 },
+    { "name": "Claims Handling Standards", "system": "Claims · rev 9", "dependents": 27 }
+  ],
+  "agents": [
+    { "id": "watch", "name": "Watch", "owner": "ci", "role": "Follows the sources of truth (policies, release notes, directories, product bulletins) and raises a change event when one moves." },
+    { "id": "scan", "name": "Scan", "owner": "ci", "role": "Pulls every checkable claim out of narration, on-screen text and captions, compares each with its source, scores severity and confidence." },
+    { "id": "rewrite", "name": "Rewrite", "owner": "ci", "role": "Proposes the smallest script change that makes the claim true again, keeping the narrator's tone, reading level and segment length." },
+    { "id": "voice", "name": "Voice", "owner": "ws", "role": "Re-renders only the changed segment in the original narrator's voice, same pronunciation library, word timing for captions." },
+    { "id": "listen", "name": "Listen", "owner": "ws", "role": "Listens back for unnatural phrasing, mispronunciations and loudness that doesn't match the neighbors. Anything odd goes to a human ear." },
+    { "id": "publish", "name": "Publish", "owner": "flow", "role": "Splices the take in, regenerates captions and transcript, repackages, and pushes a new version to wherever the course lives, after you approve." }
+  ],
+  "courses": [
+    {
+      "id": "A", "title": "Working with AI at Alder", "format": "Rise 360", "kind": "course",
+      "voice": { "name": "Wade C.", "speaker_id": 30, "style": "Narration" },
+      "owner": "Jordan Ellis", "learners": "4,800 · all employees, annual", "updated": "2024-05-14", "score": 44, "duration": "15 min",
+      "publish": { "target": "Alder Learn", "package": "SCORM 1.2", "version": "v2.0 → v2.1", "how": "Rise block audio replaced, course republished, uploaded as a new version of the same LMS course. Completions and assignments are preserved." },
+      "segments": [
+        { "id": "A1", "title": "Welcome", "voice": true, "script": "Welcome to Working with AI at Alder. In the next fifteen minutes, we'll cover what generative AI is, where it fits in your work, and the rules that keep our customers' information safe." },
+        { "id": "A2", "title": "What generative AI is", "voice": true, "verified": "No checkable policy claims; wording still consistent with policy v3.0", "script": "Generative AI tools produce text, images, and code from a prompt. They're fast, they're confident, and they're sometimes wrong. That's why our policy is about judgment as much as it is about tools." },
+        { "id": "A3", "title": "Approved tools", "voice": true, "script": "Right now, generative AI tools like ChatGPT are not approved for business use at Alder. Don't use them for work tasks, even on a personal device." },
+        { "id": "A4", "title": "Customer data", "voice": true, "script": "Never enter customer or policyholder information into any AI tool. That includes names, policy numbers, claim details, and anything from a customer file." },
+        { "id": "A5", "title": "Judgment", "voice": true, "script": "AI output is a draft, not a decision. Check the facts, check the tone, and check that nothing confidential slipped in before anything leaves your hands." },
+        { "id": "A6", "title": "Customer communications", "voice": true, "script": "If you use AI to help draft an email or letter to a customer, you don't need to disclose it, but you are responsible for every word." },
+        { "id": "A7", "title": "When you're not sure", "voice": true, "script": "If you're not sure whether a use is allowed, ask before you act. Questions go to the AI Council through the Ask AI Council channel in Slack." },
+        { "id": "A8", "title": "Wrap-up", "voice": true, "script": "That's the policy in fifteen minutes. Protect customer information, use your judgment, and ask when you're not sure. Next up, a short knowledge check." }
+      ]
+    },
+    {
+      "id": "B", "title": "ClaimsCore: Settling a Total Loss", "format": "Screencast video", "kind": "video",
+      "voice": { "name": "Ava M.", "speaker_id": 31, "style": "Narration" },
+      "owner": "Jordan Ellis", "learners": "900 · claims adjusters", "updated": "2025-11-04", "score": 62, "duration": "4 min 10 s",
+      "publish": { "target": "Kaltura", "package": "MP4", "version": "rev 7 → rev 8", "how": "New audio track muxed into the video under the same media ID, captions regenerated from word timing. Every embed of the video updates at once." },
+      "segments": [
+        { "id": "B1", "title": "Start from the claim", "voice": true, "at": "0:00", "script": "In this walkthrough, you'll settle a total-loss auto claim in ClaimsCore, from valuation to payment. Start from the claim file." },
+        { "id": "B2", "title": "Open the worksheet", "voice": true, "at": "0:14", "script": "From the left navigation, open the Payments tab. The settlement worksheet opens, with the vehicle valuation on the right." },
+        { "id": "B3", "title": "Confirm the numbers", "voice": true, "at": "0:31", "script": "Confirm the actual cash value, then apply the deductible and any lienholder payoff. The net amount updates as you go." },
+        { "id": "B4", "title": "Route for approval", "voice": true, "at": "0:52", "script": "If the settlement needs a supervisor's approval, select Hold for Review. The claim waits in the queue until your supervisor signs off." },
+        { "id": "B5", "title": "Salvage and title", "voice": true, "at": "1:10", "script": "Review the salvage and title steps before you issue payment. Each step has to be acknowledged, or the payment button stays gray." },
+        { "id": "B6", "title": "Issue payment", "voice": true, "at": "1:28", "script": "Once approved, the payment posts to the claim, and the customer receives a settlement letter automatically. That completes the walkthrough." }
+      ]
+    },
+    {
+      "id": "C", "title": "Welcome to Alder: Your First 90 Days", "format": "Storyline 360", "kind": "course",
+      "voice": { "name": "Sofia H.", "speaker_id": 8, "style": "Narration" },
+      "owner": "Jordan Ellis", "learners": "≈600 a year · new hires", "updated": "2025-01-20", "score": 57, "duration": "22 min",
+      "publish": { "target": "Alder Learn", "package": "SCORM 2004", "version": "v4.1 → v4.2", "handoff": "Priya N.", "how": "Storyline keeps audio inside the .story project, so the new takes and a change list go to the course owner for a two-minute swap, then the course is republished as a new version. A published-package audio hotfix is available if it can't wait." },
+      "segments": [
+        { "id": "C1", "title": "Welcome", "voice": false, "script": "Welcome to Alder Mutual. This course walks you through your first ninety days: who we are, how we work, what we offer you, and where to go for help." },
+        { "id": "C2", "title": "How we work", "voice": true, "script": "Alder is remote-first. Most teams gather in the Austin or Dallas office two days a week, on anchor days your manager sets." },
+        { "id": "C3", "title": "How we're led", "voice": true, "script": "Alder is led by chief executive Elena Marsh and a leadership team that started out in claims, underwriting, and the field." },
+        { "id": "C4", "title": "Benefits enrollment", "voice": false, "script": "Your benefits enrollment window opens on your first day and closes after thirty days. The benefits team hosts drop-in sessions every Tuesday." },
+        { "id": "C5", "title": "Leave and savings", "voice": true, "script": "Parents get twelve weeks of paid parental leave, and Alder matches your 401(k) contributions up to four percent.", "tts": "Parents get twelve weeks of paid parental leave, and Alder matches your four oh one K contributions up to four percent." },
+        { "id": "C6", "title": "Travel and expenses", "voice": true, "script": "Book travel and file expenses in Concur. Receipts are required for anything over seventy-five dollars." },
+        { "id": "C7", "title": "Day ninety", "voice": false, "script": "By day ninety, you'll have finished your required training, met your team, and set your first goals with your manager. Welcome aboard." }
+      ]
+    },
+    {
+      "id": "D", "title": "Speak Up: Ethics & Reporting", "format": "Rise 360", "kind": "course",
+      "voice": { "name": "Patrick K.", "speaker_id": 19, "style": "Narration" },
+      "owner": "Jordan Ellis", "learners": "4,800 · all employees, annual", "updated": "2023-10-02", "score": 74, "duration": "7 min",
+      "publish": { "target": "Alder Learn", "package": "SCORM 1.2", "version": "v2.2 → v2.3", "how": "Rise block audio replaced, course republished, uploaded as a new version of the same LMS course. Because the change is material, assigned learners are notified." },
+      "segments": [
+        { "id": "D1", "title": "Why speak up", "voice": true, "script": "Speaking up is how we protect each other and the people we insure. This lesson covers what to report, how to report it, and what happens next." },
+        { "id": "D2", "title": "How to report", "voice": true, "script": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at 1-800-555-0142, twenty-four hours a day.", "tts": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at one, eight hundred, five five five, zero one four two, twenty-four hours a day." },
+        { "id": "D3", "title": "What happens next", "voice": false, "script": "Every report is reviewed by Ethics & Compliance within two business days. You'll get a case number, and you can check its status anonymously." },
+        { "id": "D4", "title": "No retaliation", "voice": false, "script": "Retaliation against anyone who reports in good faith is a violation of policy, full stop." },
+        { "id": "D5", "title": "Wrap-up", "voice": false, "script": "If something feels wrong, say something. That's the whole lesson." }
+      ]
+    },
+    {
+      "id": "E", "title": "Personal Lines Agent Onboarding", "format": "Curriculum path · 12 courses", "kind": "path",
+      "voice": { "name": "Rayna C.", "speaker_id": 157, "style": "Narration" },
+      "owner": "Jordan Ellis", "learners": "1,200 · appointed agents", "updated": "2025-06-30", "score": 81, "duration": "6-week path",
+      "publish": { "target": "Alder Learn", "package": "MP4 · path intro", "version": "v3 → v3.1", "how": "Audio track replaced in the path's intro video and captions regenerated. The path structure is unchanged." },
+      "segments": [
+        { "id": "E1", "title": "Path introduction", "voice": true, "script": "Before your first sale, complete three foundations: Security Basics 2023, Insurance Fundamentals, and HomeShield Plus product training. HomeShield Plus is our flagship homeowners policy, with water backup available as an add-on." },
+        { "id": "E2", "title": "The six weeks ahead", "voice": false, "script": "Over six weeks you'll shadow a senior agent, quote your first policies in the sandbox, and sit for your certification." }
+      ]
+    }
+  ],
+  "findings": [
+    { "id": "F1", "course": "A", "segment": "A3", "severity": "serious", "category": "Policy", "sources": ["ai"], "confidence": 0.98, "material": true,
+      "claim": "Generative AI tools are not approved for business use",
+      "course_says": "generative AI tools like ChatGPT are not approved for business use at Alder",
+      "source_says": "Policy v3.0 (Aug 3, 2026) approves Microsoft 365 Copilot and Alder Assist for business use",
+      "fixed": "Two generative AI tools are approved for business use at Alder: Microsoft 365 Copilot and Alder Assist. Other tools, including personal ChatGPT accounts, stay off-limits for work tasks.",
+      "status": "auto" },
+    { "id": "F2", "course": "A", "segment": "A4", "severity": "serious", "category": "Policy", "sources": ["ai"], "confidence": 0.96, "material": true,
+      "claim": "Customer data may never be entered into any AI tool",
+      "course_says": "Never enter customer or policyholder information into any AI tool",
+      "source_says": "Customer data is allowed in the approved tools, which keep it inside Alder's environment; still prohibited everywhere else",
+      "fixed": "Customer and policyholder information may be used only in the approved tools, where it stays inside Alder's environment. Never enter it into any other AI tool, including personal accounts.",
+      "status": "auto" },
+    { "id": "F3", "course": "A", "segment": "A6", "severity": "serious", "category": "Policy", "sources": ["ai"], "confidence": 0.93, "material": true,
+      "claim": "AI-assisted customer communications need no review",
+      "course_says": "you don't need to disclose it, but you are responsible for every word",
+      "source_says": "A person must review AI-assisted customer communications before they are sent (policy v3.0 §4.2)",
+      "fixed": "If you use AI to help draft an email or letter to a customer, a person must review it before it's sent, and you are responsible for every word.",
+      "alt": { "label": "Use Legal's wording", "text": "If you use AI to help draft an email or letter to a customer, it must be reviewed by a person before it is sent, and you are responsible for every word." },
+      "status": "auto" },
+    { "id": "F4", "course": "A", "segment": "A7", "severity": "warning", "category": "People & teams", "sources": ["raio"], "confidence": 0.95,
+      "claim": "Questions go to the AI Council via #ask-ai-council",
+      "course_says": "Questions go to the AI Council through the Ask AI Council channel",
+      "source_says": "AI Council renamed the Responsible AI Office on Aug 10; #ask-ai-council archived, use #responsible-ai",
+      "fixed": "If you're not sure whether a use is allowed, ask before you act. Questions go to the Responsible AI Office through the responsible-AI channel in Slack.",
+      "tts_fixed": "If you're not sure whether a use is allowed, ask before you act. Questions go to the Responsible AI Office through the responsible A I channel in Slack.",
+      "status": "auto" },
+    { "id": "F5", "course": "B", "segment": "B2", "severity": "serious", "category": "Software UI", "sources": ["claims"], "confidence": 0.96,
+      "claim": "Settlement starts from the Payments tab",
+      "course_says": "open the Payments tab",
+      "source_says": "Release 26.3 (Aug 26): total-loss settlement lives under the Settlement menu",
+      "fixed": "From the left navigation, open the Settlement menu and choose Total Loss. The settlement worksheet opens, with the vehicle valuation on the right.",
+      "status": "auto" },
+    { "id": "F6", "course": "B", "segment": "B4", "severity": "serious", "category": "Software UI", "sources": ["claims"], "confidence": 0.95,
+      "claim": "Supervisor routing is called “Hold for Review”",
+      "course_says": "select Hold for Review",
+      "source_says": "Release 26.3: “Hold for Review” renamed “Pend”",
+      "fixed": "If the settlement needs a supervisor's approval, select Pend. The claim waits in the queue until your supervisor signs off.",
+      "status": "auto" },
+    { "id": "V1", "course": "B", "segment": "B2", "severity": "serious", "category": "On-screen", "sources": ["claims"], "confidence": 0.91,
+      "claim": "Screen capture shows the old navigation",
+      "course_says": "Frame at 0:14 shows the Payments tab in the left navigation",
+      "source_says": "Release 26.3 nests total-loss settlement under the Settlement menu",
+      "fixed": null, "status": "task",
+      "task": "Re-capture 0:14–0:31 in ClaimsCore 26.3 and drop the clip into the Kaltura draft. The re-voiced narration is already aligned to the new timing.",
+      "note": "Narration can be re-voiced; a screen capture can't. The agents open the task and hold the new take until the footage is in." },
+    { "id": "F7", "course": "C", "segment": "C2", "severity": "serious", "category": "Policy", "sources": ["hybrid"], "confidence": 0.97, "material": true,
+      "claim": "Alder is remote-first with two anchor days",
+      "course_says": "Alder is remote-first … two days a week, on anchor days your manager sets",
+      "source_says": "Hybrid Work Policy effective Sep 1, 2026: three days a week, Tuesday through Thursday, for Austin and Dallas hubs",
+      "fixed": "Alder works hybrid. Teams based in Austin and Dallas are in the office three days a week, Tuesday through Thursday, with exceptions approved by your manager.",
+      "status": "auto" },
+    { "id": "F8", "course": "C", "segment": "C3", "severity": "serious", "category": "People & teams", "sources": ["leaders"], "confidence": 0.99,
+      "claim": "Elena Marsh is chief executive",
+      "course_says": "led by chief executive Elena Marsh",
+      "source_says": "Priya Raman named CEO on Aug 17, 2026; Elena Marsh retires Sep 30",
+      "fixed": "Alder is led by chief executive Priya Raman and a leadership team that started out in claims, underwriting, and the field.",
+      "status": "auto" },
+    { "id": "V2", "course": "C", "segment": "C3", "severity": "serious", "category": "Media", "sources": ["leaders"], "confidence": 0.97,
+      "claim": "Lesson 1 embeds a welcome video from the former CEO",
+      "course_says": "2 min 10 s welcome video, Elena Marsh, recorded Jan 2025",
+      "source_says": "Priya Raman is CEO as of Aug 17, 2026",
+      "fixed": null, "status": "task",
+      "task": "Request a new welcome video from the CEO's office (or approve a narrated placeholder slide) and replace the media in Lesson 1.",
+      "note": "A person on camera can't be re-voiced into someone else. This one is a request, not a render." },
+    { "id": "F9", "course": "C", "segment": "C5", "severity": "serious", "category": "Benefits", "sources": ["benefits"], "confidence": 0.88,
+      "claim": "Paid parental leave is 12 weeks",
+      "course_says": "twelve weeks of paid parental leave",
+      "source_says": "Benefits Guide 2027 (Aug 24): 16 weeks for births and placements after Sep 1, 2026. The People Portal FAQ still says 12 weeks.",
+      "fixed": "Parents get sixteen weeks of paid parental leave, and Alder matches your 401(k) contributions up to four percent.",
+      "tts_fixed": "Parents get sixteen weeks of paid parental leave, and Alder matches your four oh one K contributions up to four percent.",
+      "status": "review",
+      "note": "Two sources disagree. The proposed take follows the policy-level document (Benefits Guide 2027). Confirm which source is authoritative before this goes to 600 new hires." },
+    { "id": "F10", "course": "C", "segment": "C6", "severity": "warning", "category": "Tools", "sources": ["finance"], "confidence": 0.97,
+      "claim": "Travel and expenses run through Concur; receipts over $75",
+      "course_says": "Book travel and file expenses in Concur … over seventy-five dollars",
+      "source_says": "Concur retired Jul 1, 2026; Navan for travel and expenses; receipts required over $25",
+      "fixed": "Book travel and file expenses in Navan. Receipts are required for anything over twenty-five dollars.",
+      "status": "auto" },
+    { "id": "F11", "course": "D", "segment": "D2", "severity": "critical", "category": "Compliance", "sources": ["ethics"], "confidence": 0.99, "material": true,
+      "claim": "The Speak Up hotline is 1-800-555-0142",
+      "course_says": "the Speak Up line at 1-800-555-0142",
+      "source_says": "New provider since Aug 31, 2026: 1-855-555-0199 and speakup.aldermutual.com. The old number is disconnected.",
+      "fixed": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at 1-855-555-0199, or at speakup.aldermutual.com, twenty-four hours a day.",
+      "tts_fixed": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at one, eight five five, five five five, zero one nine nine, or at speak up dot alder mutual dot com, twenty-four hours a day.",
+      "status": "auto" },
+    { "id": "F12", "course": "E", "segment": "E1", "severity": "warning", "category": "Product · Cross-reference", "sources": ["product", "catalog"], "confidence": 0.94,
+      "claim": "Prerequisite “Security Basics 2023” and product “HomeShield Plus” with optional water backup",
+      "course_says": "Security Basics 2023 … HomeShield Plus … water backup available as an add-on",
+      "source_says": "Security Basics 2023 retired Aug 27 (now Security Essentials 2026). HomeShield Plus renamed HomeShield Complete on Jul 20; water backup is standard.",
+      "fixed": "Before your first sale, complete three foundations: Security Essentials 2026, Insurance Fundamentals, and HomeShield Complete product training. HomeShield Complete is our flagship homeowners policy, and water backup coverage is now included as standard.",
+      "status": "auto" }
+  ],
+  "scan": {
+    "started": "2:00 AM", "finished": "2:07 AM", "first_full": true,
+    "claims": 5912, "segments": 3418, "sources": 10,
+    "findings": 47, "courses_affected": 31, "critical": 3, "serious": 19, "warning": 25,
+    "auto": 41, "review": 2, "tasks": 4,
+    "log": [
+      ["2:00:04", "watch", "10 sources of truth connected. All 10 have changed since the courses that cite them were last published."],
+      ["2:00:09", "scan", "Reading the library: 212 courses · 3,418 narration segments · 5 formats (Rise, Storyline, video, VILT decks, paths)."],
+      ["2:01:12", "scan", "5,912 checkable claims extracted from narration, on-screen text and captions."],
+      ["2:03:40", "scan", "Comparing each claim with its source…"],
+      ["2:05:02", "scan", "AI Acceptable Use Policy v3.0 → 9 segments in 3 courses still describe generative AI as prohibited."],
+      ["2:05:11", "scan", "ClaimsCore 26.3 → 7 segments reference the Payments tab or “Hold for Review”."],
+      ["2:05:19", "scan", "Speak Up program → 3 segments still give the disconnected 1-800 number.", "crit"],
+      ["2:05:27", "scan", "Hybrid Work Policy → 5 segments say remote-first or two anchor days."],
+      ["2:05:33", "scan", "Still true: 5,865 claims verified against current sources.", "dim"],
+      ["2:05:50", "rewrite", "47 proposed takes drafted. Tone, reading level and segment length preserved."],
+      ["2:06:10", "voice", "41 segments rendered in the original narrators' voices. 2 held for human judgment. 4 need footage or media a voice can't fix."],
+      ["2:06:40", "listen", "41 takes checked. Loudness matched to neighboring segments. 0 pronunciation flags."],
+      ["2:06:55", "publish", "New versions staged for 31 courses. Waiting for owner approval."],
+      ["2:07:00", "publish", "Digest posted to #ld-content-ops. Owners: Jordan Ellis (5 courses), Priya N. (3), Devon A. (4), 19 others."]
+    ]
+  },
+  "slack": {
+    "channel": "ld-content-ops", "members": 14,
+    "people": {
+      "continuity": { "name": "Continuity", "app": true, "initials": "CI", "color": "sky" },
+      "wellsaid": { "name": "WellSaid", "app": true, "initials": "W", "color": "mint" },
+      "jordan": { "name": "Jordan Ellis", "initials": "JE", "color": "amber" },
+      "priya": { "name": "Priya N.", "initials": "PN", "color": "violet" },
+      "sam": { "name": "Sam Okafor", "initials": "SO", "color": "rose" }
+    }
+  }
+}

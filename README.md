@@ -1,0 +1,55 @@
+# Self-Updating Curriculum — TechLearn 2026 (Austin)
+
+**Live demo:** https://billyatminyawns.github.io/self-updating-curriculum/ (GitHub Pages, served from `docs/`). Works offline too: download `docs/index.html` and open it.
+
+**AI agents that detect drift and re-voice your content.** Billy Sheng (WellSaid Labs) with Continuity Intelligence.
+Three deliverables for a 15-minute slot: **slides → live demo (Notion, then the Drift Inbox dashboard) → slides**.
+
+| Piece | Where | Notes |
+|---|---|---|
+| Slides (9, with timed speaker notes) | `slides/Self-Updating Curriculum - TechLearn 2026.pptx` | Slide 5 holds the full demo script in its notes |
+| Drift Inbox dashboard | `docs/index.html` (hosted) · `dist/index.html` (local build) | one file, 34 real WellSaid clips inside; also published as a private Claude artifact |
+| Notion workflow | Notion page “Self-Updating Curriculum · Drift Inbox (TechLearn 2026 demo)” | Findings board + Courses, Sources of truth, Activity log; audio attached to the cards |
+
+## The story (fictional, but the pattern is real)
+
+**Alder Mutual**, a regional insurer in Austin, 4,800 employees. **Jordan Ellis**, Senior Instructional Designer, owns five courses. Overnight (Tuesday Sep 15, 2026, 2:00 AM) the agents ran the first full scan of the 212-course library and posted a digest to Slack. Fourteen findings in Jordan's courses:
+
+| Course | Narrator | What drifted |
+|---|---|---|
+| Working with AI at Alder (Rise, 2024) | Wade C. | AI policy flipped from “prohibited” to approved tools (Copilot, Alder Assist); human review of AI-drafted customer letters; AI Council renamed |
+| ClaimsCore: Settling a Total Loss (screencast) | Ava M. | Release 26.3 moved the Payments tab into the Settlement menu; “Hold for Review” → “Pend”; a screen capture needs re-shooting |
+| Welcome to Alder: First 90 Days (Storyline) | Sofia H. | Hybrid policy 2 → 3 days; new CEO (plus the old CEO's welcome video); parental leave 12 → 16 weeks (two sources disagree); Concur → Navan |
+| Speak Up: Ethics & Reporting (Rise, 2023) | Patrick K. | **Critical:** the hotline number was disconnected Aug 31 |
+| Personal Lines Agent Onboarding (path) | Rayna C. | Retired prerequisite; HomeShield Plus → HomeShield Complete |
+
+Human stops built in: F9 waits for a judgment call (conflicting sources), F3 shows the edit-and-re-voice path (Legal's wording is pre-rendered), V1/V2 become tasks (footage and a video of a person can't be re-voiced), the Storyline course hands off to its owner Priya N.
+
+## Run of show (15 minutes)
+
+1. **Slides 1–4** (3 min): the library problem → what drifted this summer → the loop (six agents, one human).
+2. **Slide 5, then switch to the browser** (8 min): Notion first (Workflow board → the critical card → play published vs. new take → the judgment card → drag to Published → Sources / Activity), then the Drift Inbox (Slack digest → approve the critical finding → Approve all ready → judgment call → tasks → Library: play the republished module).
+3. **Slides 6–9** (3 min): what just happened → where the fix goes back (the SCORM answer) → what stays human → bring us one stale course.
+
+Dashboard keys: `1–4` sections, `S` Slack panel, `T` light/dark, `?` presenter notes, **Reset demo** back to 7:42 AM. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
+
+## Does it make sense to export a SCORM file?
+
+Only as the delivery container. The fix belongs in the source, and the package is the new version the LMS receives:
+Rise → block audio replaced, republished, uploaded as a new version of the same course (SCORM 1.2/2004 or xAPI) so completions survive;
+video → audio track swapped under the same media ID; Storyline → audio is embedded in the .story project, so the takes go to the author for a two-minute swap (a published-package hotfix exists if it can't wait). Material change → the designer chooses notify vs. re-assign, recorded in the version note. The dashboard, the Notion page and slide 7 all say this.
+
+## What is real, what is staged
+
+- All narration is real WellSaid audio (preview model; Wade C. 30, Ava M. 31, Sofia H. 8, Patrick K. 19, Rayna C. 157), rendered ahead of time so the demo works offline. Production renders live, ~2 s per segment.
+- Word highlighting uses WellSaid's word-timing endpoint. Agent progress animations run at demo pace.
+- Alder Mutual, its people, policies and courses are fictional. Library-wide counts (212 courses, 47 findings) are illustrative.
+
+## Change or rebuild
+
+- Content: `src/content.json` (company, sources, agents, courses/segments, findings, Slack people). `"voice": true` on a segment renders audio; a finding's `fixed` gets a second take, `alt` a third; `status` `review`/`task` control the human stops.
+- Page: `src/index.html`, `src/styles.css`, `src/app.js`. Build: `python3 build.py` → `docs/index.html` (standalone, what GitHub Pages serves) + `dist/index.html` (local copy) + `dist/artifact.html` (fragment for the Claude artifact). Push `docs/` to publish.
+- Audio: `python3 scripts/render_audio.py` (missing clips) · `--only=A3_orig,A3_fix` · `--force`. Uses the REST API directly (`scripts/wellsaid_api.py`, key from `../wellsaid-connector/.env`) so the `preview` model is available. `TTS_SUBS` spells out `AI`, `ClaimsCore`, `HomeShield`, `401(k)`; speech-to-text transcripts land in `audio/timing/` and are the fast way to catch a mispronunciation.
+- Slides: `slides/build_deck.js` (pptxgenjs; run with `NODE_PATH` pointing at a node_modules that has pptxgenjs). Speaker notes carry the timings.
+- Preview: `python3 serve.py 4833`.
+- The slide deck (`slides/`), the first slide-style version (`archive/`) and the raw WAV masters (`audio/raw/`) live only in the local folder, not in this repo.
