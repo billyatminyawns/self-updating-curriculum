@@ -9,7 +9,7 @@ Three deliverables for a 15-minute slot: **slides → live demo (Notion, then th
 |---|---|---|
 | Slides (9, with timed speaker notes) | `slides/Self-Updating Curriculum - TechLearn 2026.pptx` | Slide 5 holds the full demo script in its notes |
 | Drift Inbox dashboard | `docs/index.html` (hosted) · `dist/index.html` (local build) | one file, 34 real WellSaid clips inside; also published as a private Claude artifact |
-| Notion workflow | Notion page “Self-Updating Curriculum · Drift Inbox (TechLearn 2026 demo)” | Findings board + Courses, Sources of truth, Activity log; audio attached to the cards |
+| Notion hub | Notion page “Self-Updating Curriculum · Drift Inbox (TechLearn 2026 demo)” | Curriculum inventory (status, owner, SME, review dates), Content fixes board (who is working on what), Voice & style standards, Sources of truth, Activity log; audio on every card; deep links to the site |
 
 ## The story (fictional, but the pattern is real)
 
@@ -33,6 +33,14 @@ Human stops built in: F9 waits for a judgment call (conflicting sources), F3 sho
 
 Dashboard keys: `→`/`N` next item, `1`/`2` Inbox/Courses, `S` Slack panel, `H` How it works (agents, last night's log, sources, where fixes go back), `T` light/dark, `?` presenter notes, **Reset** back to 7:42 AM. Deep links: `#F11` opens the hotline item, `#courses` the courses view. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
 
+## Notion and the site work together
+
+The Notion hub is the team's system of record; the site is the agent's inbox. Every finding card in Notion has **Open in Drift Inbox** (deep link to that item, e.g. `#F11`); every course row has one too (`#course-A`). On the site, each item's Details section links back to its Notion card, the Curriculum inventory and the hub, and the How it works panel links to the Voice & style standards. Same 14 findings, same owners (Jordan Ellis, Priya N.), same voices.
+
+## Voice intelligence
+
+`voice_standards` in `src/content.json` says which WellSaid voice is approved for which content type (Patrick K. external training and compliance, Ava M. internal how-to, Wade C. company policy, Sofia H. onboarding; Rayna C. retired). Each course carries a `standard`; the site shows whether its narrator is approved. A finding can carry `voice_override`, and the fix is then rendered in that voice: the Agent Onboarding path (external training, narrated by the retired Rayna C.) gets its fix in Patrick K. The Notion database *Voice & style standards* holds the same table plus the script style rules and pronunciation library.
+
 ## Real Slack, optional
 
 The Slack panel in the demo is simulated. To post for real during the talk: in your Slack workspace create a channel (for example `#ld-content-ops`), add an app with an **Incoming Webhook** pointing at it, open the demo's Slack panel (`S`) and paste the webhook URL into **Connect**. From then on every approval, hand-off, task and judgment call the demo posts also lands in the real channel (the built-in panel keeps working offline). The webhook URL is stored only in that browser.
@@ -53,7 +61,7 @@ video → audio track swapped under the same media ID; Storyline → audio is em
 
 - Content: `src/content.json` (company, sources, agents, courses/segments, findings, Slack people). `"voice": true` on a segment renders audio; a finding's `fixed` gets a second take, `alt` a third; `status` `review`/`task` control the human stops.
 - Page: `src/index.html`, `src/styles.css`, `src/app.js`. Build: `python3 build.py` → `docs/index.html` (standalone, what GitHub Pages serves) + `dist/index.html` (local copy) + `dist/artifact.html` (fragment for the Claude artifact). Push `docs/` to publish.
-- Audio: `python3 scripts/render_audio.py` (missing clips) · `--only=A3_orig,A3_fix` · `--force`. Uses the REST API directly (`scripts/wellsaid_api.py`, key from `../wellsaid-connector/.env`) so the `preview` model is available. `TTS_SUBS` spells out `AI`, `ClaimsCore`, `HomeShield`, `401(k)`; speech-to-text transcripts land in `audio/timing/` and are the fast way to catch a mispronunciation.
+- Audio: `python3 scripts/render_audio.py` (missing clips; a finding's `voice_override.speaker_id` is used for its fix) · `--only=A3_orig,A3_fix` · `--force`. Uses the REST API directly (`scripts/wellsaid_api.py`, key from `../wellsaid-connector/.env`) so the `preview` model is available. `TTS_SUBS` spells out `AI`, `ClaimsCore`, `HomeShield`, `401(k)`; speech-to-text transcripts land in `audio/timing/` and are the fast way to catch a mispronunciation.
 - Slides: `slides/build_deck.js` (pptxgenjs; run with `NODE_PATH` pointing at a node_modules that has pptxgenjs). Speaker notes carry the timings.
 - Preview: `python3 serve.py 4833`.
 - The slide deck (`slides/`), the first slide-style version (`archive/`) and the raw WAV masters (`audio/raw/`) live only in the local folder, not in this repo.

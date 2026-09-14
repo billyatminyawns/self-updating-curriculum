@@ -80,19 +80,23 @@ function playClip(key, hooks = {}) {
 const fmtTime = s => { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 function scriptNode(text, mask = [], kind = '') { const p = el('p', { class: 'script' }); const T = toks(text); T.forEach((w, i) => { p.append(el('span', { class: 'w' + (mask[i] ? ' ' + kind : ''), 'data-i': i }, w)); if (i < T.length - 1) p.append(' '); }); return p; }
 function highlightWord(sc, idx) { $$('.w.on', sc).forEach(w => w.classList.remove('on')); if (idx >= 0) { const w = sc.querySelector(`.w[data-i="${idx}"]`); w && w.classList.add('on'); } }
-function player({ key, text, mask, kind, label, sub, course, tone }) {
+function player({ key, text, mask, kind, label, sub, course, tone, voiceName }) {
   const clip = clipFor(key), c = courseById[course];
   const box = el('div', { class: 'player ' + (tone || '') + (clip ? '' : ' pending') });
   const btn = el('button', { class: 'pbtn ' + (tone === 'fresh' ? 'mint' : 'amber'), 'aria-label': 'Play: ' + label, disabled: !clip }, el('span', { class: 'ic' }));
   const bar = el('div', { class: 'bar' }, el('i')), time = el('span', { class: 'time num' }, clip ? fmtTime(clip.duration) : '–:––');
   const sc = scriptNode(text, mask, kind);
-  box.append(el('div', { class: 'ph' }, el('span', { class: 'lbl' }, el('b', {}, label), sub ? ' · ' + sub : ''), el('span', { class: 'nar' }, `${c.voice.name} · WellSaid`)), el('div', { class: 'pc' }, btn, bar, time), sc);
+  box.append(el('div', { class: 'ph' }, el('span', { class: 'lbl' }, el('b', {}, label), sub ? ' · ' + sub : ''), el('span', { class: 'nar' }, `${voiceName || c.voice.name} · WellSaid`)), el('div', { class: 'pc' }, btn, bar, time), sc);
   let playing = false; const setPlaying = v => { playing = v; btn.classList.toggle('playing', v); };
   btn.addEventListener('click', () => { if (playing) { stopAll(); return; } playClip(key, { onStart: () => setPlaying(true), onWord: i => highlightWord(sc, i), onTime: (t, d) => { bar.firstChild.style.width = (d ? t / d * 100 : 0) + '%'; time.textContent = fmtTime(t); }, onEnd: () => { setPlaying(false); highlightWord(sc, -1); bar.firstChild.style.width = '0%'; time.textContent = fmtTime(clip.duration); } }); });
   box.play = () => { if (!playing) btn.click(); }; return box;
 }
 const takeKey = f => f.segment + '_' + (S.take[f.id] === 'alt' ? 'alt' : 'fix');
 const takeText = f => S.take[f.id] === 'alt' && f.alt ? f.alt.text : f.fixed;
+const standardFor = c => C.voice_standards.find(s => s.id === c.standard) || null;
+const voiceOk = c => { const s = standardFor(c); return !s || s.voice === c.voice.name; };
+const takeVoice = f => f.voice_override || courseById[f.course].voice;
+const voiceLine = (c, f) => { const s = standardFor(c); if (!s) return c.voice.name; if (f && f.voice_override) return `${c.voice.name} is a retired voice. ${s.content_type} uses ${s.voice}, so the fix is re-recorded in ${s.voice} instead`; return voiceOk(c) ? `${c.voice.name} · approved for ${s.content_type.toLowerCase()}` : `${c.voice.name} · not on the approved list; ${s.content_type.toLowerCase()} uses ${s.voice}`; };
 
 /* ── derived ─────────────────────────────────────────────────────────────── */
 function segState(s) {
@@ -200,7 +204,7 @@ function versionNote(c) {
   const fs = byCourse[c.id].filter(f => narration(f) && S.status[f.id] === 'published');
   const srcs = [...new Set(fs.flatMap(f => f.sources))].map(id => `${sourceById[id].name} (${fshort(sourceById[id].date)})`);
   const mat = fs.find(f => f.material);
-  return `${S.versions[c.id]} · ${c.title}\nPublished ${fdate(C.meta.date)} ${clockStr()} by ${ME.name} · ${fs.length} line${fs.length === 1 ? '' : 's'} re-voiced (${c.voice.name}) · captions and transcript regenerated\n` + fs.map(f => `• ${segById[f.segment].where}: ${f.short}`).join('\n') + `\nSources: ${srcs.join('; ')}\nLearners: ${mat ? (S.notify[mat.id] === 'reassign' ? 're-assigned for re-completion' : S.notify[mat.id] === 'notify' ? 'notified of a material change' : 'updated in place') : 'updated in place, completions preserved'}`;
+  return `${S.versions[c.id]} · ${c.title}\nPublished ${fdate(C.meta.date)} ${clockStr()} by ${ME.name} · ${fs.length} line${fs.length === 1 ? '' : 's'} re-voiced (${c.voice.name}) · captions and transcript regenerated\n` + fs.map(f => `• ${segById[f.segment].where}: ${f.short}${f.voice_override ? ` (re-recorded in ${f.voice_override.name})` : ''}`).join('\n') + `\nSources: ${srcs.join('; ')}\nLearners: ${mat ? (S.notify[mat.id] === 'reassign' ? 're-assigned for re-completion' : S.notify[mat.id] === 'notify' ? 'notified of a material change' : 'updated in place') : 'updated in place, completions preserved'}`;
 }
 function renderReview() {
   const r = $('#review'); r.innerHTML = ''; const f = findingById[S.current]; if (!f) return;
@@ -217,7 +221,8 @@ function renderReview() {
   if (c.kind === 'video') rv.append(mockCompare(f));
   if (narration(f)) {
     rv.append(player({ key: seg.id + '_orig', text: seg.script, mask: staleMask(seg.script, takeText(f)), kind: 'stale', label: 'In the course today', sub: `published ${fdate(c.updated)}`, course: c.id, tone: 'stale' }));
-    rv.append(player({ key: takeKey(f), text: takeText(f), mask: freshMask(seg.script, takeText(f)), kind: 'fresh', label: S.take[f.id] === 'alt' ? 'Your edited line' : 'The fix', sub: 'same narrator, only this line re-recorded', course: c.id, tone: 'fresh' }));
+    const tv = takeVoice(f), std = standardFor(c);
+    rv.append(player({ key: takeKey(f), text: takeText(f), mask: freshMask(seg.script, takeText(f)), kind: 'fresh', label: S.take[f.id] === 'alt' ? 'Your edited line' : 'The fix', sub: f.voice_override ? `re-recorded in ${tv.name}, the approved voice for ${std.content_type.toLowerCase()}` : 'same narrator, only this line re-recorded', course: c.id, tone: 'fresh', voiceName: tv.name }));
     if (S.editing === f.id) rv.append(editor(f));
   } else {
     rv.append(el('div', { class: 'box task' }, el('span', { class: 'k' }, 'Needs a person'), el('p', {}, f.note), el('p', { style: 'font-size:16px;color:var(--ink-2)' }, el('b', {}, 'Task: '), f.task)));
@@ -239,8 +244,10 @@ function renderReview() {
   const d = el('details', { class: 'more' }, el('summary', {}, 'Details: how it checked, where it goes back'));
   const kv = el('dl', { class: 'kv' });
   if (narration(f)) kv.append(el('dt', {}, 'Voice check'), el('dd', {}, `Prosody natural · loudness matched to the neighboring lines · 0 pronunciation flags · length ${lenDelta(seg, f)}`));
+  kv.append(el('dt', {}, 'Voice'), el('dd', {}, voiceLine(c, f)));
   kv.append(el('dt', {}, 'Confidence'), el('dd', {}, `${Math.round(f.confidence * 100)}% that the course is out of date`), el('dt', {}, 'Goes back to'), el('dd', {}, el('b', {}, c.publish.target), ` · ${c.publish.package} · ${S.versions[c.id] || c.publish.version}`), el('dt', {}, 'How'), el('dd', {}, c.publish.how));
   if (f.material && narration(f) && st === 'open') { const sel = el('select', { onchange: e => { S.notify[f.id] = e.target.value; } }, el('option', { value: 'notify' }, 'Notify assigned learners'), el('option', { value: 'quiet' }, 'Update quietly'), el('option', { value: 'reassign' }, 'Re-assign for re-completion')); sel.value = S.notify[f.id]; kv.append(el('dt', {}, 'Learners'), el('dd', {}, 'Material change · ', sel)); }
+  kv.append(el('dt', {}, 'In Notion'), el('dd', {}, el('a', { class: 'lnk', href: f.notion, target: '_blank', rel: 'noopener' }, 'This item'), ' · ', el('a', { class: 'lnk', href: C.links.notion_inventory, target: '_blank', rel: 'noopener' }, 'Curriculum inventory'), ' · ', el('a', { class: 'lnk', href: C.links.notion_hub, target: '_blank', rel: 'noopener' }, 'Content operations hub')));
   if (st === 'published') kv.append(el('dt', {}, 'Version note'), el('dd', {}, el('pre', { class: 'vnote' }, versionNote(c))));
   d.append(kv); rv.append(d);
   r.append(rv); r.scrollTop = 0;
@@ -266,7 +273,7 @@ async function approve(id, opts = {}) {
   for (let i = 0; i < steps.length; i++) { const p = $('#pub-progress'), s = $('#pub-step'); if (p) p.style.width = ((i + 1) / steps.length * 100) + '%'; if (s) s.textContent = steps[i]; await wait(opts.fast ? 160 : 450); }
   tick(1);
   if (c.publish.handoff) { S.status[id] = 'handoff'; logToday(`Approved ${f.short} → sent to Priya N.`); if (!opts.silent) { slackPost('continuity', `📦 <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). New line + change list sent to <b>Priya N.</b>, who owns the Storyline file.`); schedulePriya(); } }
-  else { const v = bump(c); S.status[id] = 'published'; logToday(`Approved ${f.short} → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). Republished to <b>${c.publish.target}</b> as ${v}, completions kept${f.material && S.notify[id] !== 'quiet' ? `, ${c.learners.split(' ·')[0]} learners ${S.notify[id] === 'reassign' ? 're-assigned' : 'notified'}` : ''}.`); }
+  else { const v = bump(c); S.status[id] = 'published'; logToday(`Approved ${f.short} → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). Republished to <b>${c.publish.target}</b> as ${v}, completions kept${f.material && S.notify[id] !== 'quiet' ? `, ${c.learners.split(' ·')[0]} learners ${S.notify[id] === 'reassign' ? 're-assigned' : 'notified'}` : ''}.${f.voice_override ? ` Re-recorded in <b>${f.voice_override.name}</b>, the approved voice for ${standardFor(c).content_type.toLowerCase()}.` : ''}`); }
   if (!opts.quietUI) { renderQueue(); if (S.current === id) renderReview(); }
 }
 let priyaTimer = 0;
@@ -367,6 +374,10 @@ seedSlack();
   C.agents.forEach((a, i) => steps.append(el('div', { class: 'step' }, el('span', { class: 'n ' + a.owner }, i + 1), el('div', {}, el('b', {}, `${a.name} · ${OWN[a.owner]}`), el('p', {}, a.role)))));
   steps.append(el('div', { class: 'step' }, el('span', { class: 'n you' }, '✓'), el('div', {}, el('b', {}, 'You decide'), el('p', {}, 'Approve, edit the wording, or keep it as is. Two sources disagree? It stops and asks. A screen recording or a video of a person? It opens a task instead.'))));
   h.append(steps);
+  h.append(el('div', {}, el('h3', {}, 'Voice & style standards'), el('p', { style: 'margin-top:6px' }, 'The Voice agent reads these before it re-records a line: which narrator is approved for which kind of content, and how scripts are written. A course narrated by a retired voice is flagged like any other drift.'),
+    el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...C.voice_standards.map(s => el('li', {}, el('span', {}, el('b', {}, s.content_type), el('span', {}, s.status === 'Retired' ? s.notes : s.who)), el('span', { class: 'when' + (s.status === 'Retired' ? '' : ' ok') }, s.status === 'Retired' ? `${s.voice} · retired` : s.voice)))),
+    el('ul', { class: 'rules' }, ...C.style_rules.map(r => el('li', {}, r))),
+    el('p', { style: 'margin-top:10px' }, el('a', { class: 'lnk', href: C.links.notion_standards, target: '_blank', rel: 'noopener' }, 'Voice & style standards in Notion →'), ' · ', el('a', { class: 'lnk', href: C.links.notion_hub, target: '_blank', rel: 'noopener' }, 'Content operations hub →'))));
   h.append(el('div', {}, el('h3', {}, `Last night at ${C.company.name}`), el('ol', { class: 'log', style: 'margin-top:10px' }, ...C.scan.log.map(([t, who, msg, cls]) => el('li', {}, el('span', { class: 't' }, t), el('span', { class: cls || '' }, msg))))));
   h.append(el('div', {}, el('h3', {}, 'Sources being watched'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...[...C.sources].sort((a, b) => b.date.localeCompare(a.date)).map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.change)), el('span', { class: 'when' }, `moved ${fshort(s.date)}`))), ...C.unchanged_sources.map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.system)), el('span', { class: 'when ok' }, 'unchanged'))))));
   h.append(el('div', {}, el('h3', {}, 'Where the fix goes back'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...C.courses.map(c => el('li', {}, el('span', {}, el('b', {}, `${c.title} · ${c.format}`), el('span', {}, c.publish.how)), el('span', { class: 'when ok' }, c.publish.package))))));
@@ -378,7 +389,8 @@ function renderCourses() {
   const g = $('#courses-grid'); g.innerHTML = '';
   C.courses.forEach(c => {
     const sc = courseScore(c), fs = byCourse[c.id], done = fs.filter(f => RESOLVED.has(S.status[f.id])).length;
-    g.append(el('button', { class: 'ccard' + (S.course === c.id ? ' active' : ''), onclick: () => { S.course = c.id; renderCourses(); } }, el('h3', {}, c.title), el('span', { class: 'm' }, `${c.format} · ${c.voice.name} · ${c.learners}`), strip(c), el('div', { class: 'st' }, el('span', {}, done === fs.length ? `All ${fs.length} items handled${S.versions[c.id] ? ' · ' + S.versions[c.id] : ''}` : `${fs.length - done} of ${fs.length} items open`), el('span', { class: 'score num' + (sc >= 90 ? ' good' : '') }, sc))));
+    const std = standardFor(c), revoiced = byCourse[c.id].some(f => f.voice_override && S.status[f.id] === 'published');
+    g.append(el('button', { class: 'ccard' + (S.course === c.id ? ' active' : ''), onclick: () => { S.course = c.id; renderCourses(); } }, el('h3', {}, c.title), el('span', { class: 'm' }, `${c.format} · ${c.learners}`), el('span', { class: 'm ' + (voiceOk(c) || revoiced ? 'okv' : 'badv') }, revoiced ? `new lines in ${std.voice} · approved for ${std.content_type.toLowerCase()}` : voiceOk(c) ? `${c.voice.name} · approved for ${std.content_type.toLowerCase()}` : `${c.voice.name} · retired voice; ${std.content_type.toLowerCase()} uses ${std.voice}`), strip(c), el('div', { class: 'st' }, el('span', {}, done === fs.length ? `All ${fs.length} items handled${S.versions[c.id] ? ' · ' + S.versions[c.id] : ''}` : `${fs.length - done} of ${fs.length} items open`), el('span', { class: 'score num' + (sc >= 90 ? ' good' : '') }, sc))));
   });
   renderCourseDetail(courseById[S.course]);
 }
@@ -388,17 +400,17 @@ function renderCourseDetail(c) {
   c.segments.forEach(s => {
     const fs = findingsBySeg[s.id] || []; const pub = fs.find(f => S.status[f.id] === 'published'); const key = pub ? takeKey(pub) : s.id + '_orig'; const text = pub ? takeText(pub) : s.script;
     const open = fs.filter(f => !['published', 'dismissed'].includes(S.status[f.id]));
-    const tag = pub ? el('span', { class: 'chip good' }, 'new line') : open.length ? el('span', { class: 'chip ' + (open.some(f => f.severity === 'critical') ? 'critical' : 'serious') }, S.status[open[0].id] === 'handoff' ? 'with Priya' : 'out of date') : el('span', { class: 'chip' }, 'unchanged');
+    const tag = pub ? el('span', { class: 'chip good' }, pub.voice_override ? `new line · ${pub.voice_override.name}` : 'new line') : open.length ? el('span', { class: 'chip ' + (open.some(f => f.severity === 'critical') ? 'critical' : 'serious') }, S.status[open[0].id] === 'handoff' ? 'with Priya' : 'out of date') : el('span', { class: 'chip' }, 'unchanged');
     const b = el('button', { class: 'pbtn sm' + (pub ? ' mint' : ''), 'aria-label': 'Play ' + s.where, disabled: !clipFor(key), onclick: () => playRow(s.id) }, el('span', { class: 'ic' }));
     const row = el('div', { class: 'segrow', 'data-seg': s.id }, b, el('span', { class: 't' }, s.where.split(' · ')[1] || s.where, el('span', {}, s.where.split(' · ')[0])), tag);
-    rows[s.id] = { row, key, text, mask: pub ? freshMask(s.script, takeText(pub)) : (fs[0] ? staleMask(s.script, fs[0].fixed) : []), kind: pub ? 'fresh' : 'stale' }; list.append(row);
+    rows[s.id] = { row, key, text, mask: pub ? freshMask(s.script, takeText(pub)) : (fs[0] ? staleMask(s.script, fs[0].fixed) : []), kind: pub ? 'fresh' : 'stale', voice: pub ? takeVoice(pub).name : c.voice.name }; list.append(row);
   });
   const st = strip(c);
-  function playRow(id) { const r = rows[id]; $$('.segrow', list).forEach(x => x.classList.toggle('active', x.dataset.seg === id)); np.hidden = false; np.innerHTML = ''; const sc = scriptNode(r.text, r.mask, r.kind); np.append(el('div', { class: 'np-head' }, el('span', {}, el('b', {}, segById[id].where)), el('span', {}, `${c.voice.name} · ${r.kind === 'fresh' ? 'new line' : 'as published'}`)), sc); const segEl = $(`.seg[data-seg="${id}"]`, st); segEl && segEl.classList.add('playing'); return playClip(r.key, { onWord: i => highlightWord(sc, i), onEnd: () => { segEl && segEl.classList.remove('playing'); highlightWord(sc, -1); } }); }
+  function playRow(id) { const r = rows[id]; $$('.segrow', list).forEach(x => x.classList.toggle('active', x.dataset.seg === id)); np.hidden = false; np.innerHTML = ''; const sc = scriptNode(r.text, r.mask, r.kind); np.append(el('div', { class: 'np-head' }, el('span', {}, el('b', {}, segById[id].where)), el('span', {}, `${r.voice} · ${r.kind === 'fresh' ? 'new line' : 'as published'}`)), sc); const segEl = $(`.seg[data-seg="${id}"]`, st); segEl && segEl.classList.add('playing'); return playClip(r.key, { onWord: i => highlightWord(sc, i), onEnd: () => { segEl && segEl.classList.remove('playing'); highlightWord(sc, -1); } }); }
   let all = false; const allVoiced = c.segments.every(s => clipFor(rows[s.id].key));
   const allBtn = el('button', { class: 'btn primary', disabled: !allVoiced, title: allVoiced ? '' : 'Only the flagged lines of this course carry audio in the offline demo', onclick: async () => { if (all) { all = false; stopAll(); allBtn.textContent = 'Play the whole course'; return; } all = true; allBtn.textContent = 'Stop'; for (const s of c.segments) { if (!all) break; const ok = await playRow(s.id); if (!ok) break; await wait(300); } all = false; allBtn.textContent = 'Play the whole course'; $$('.segrow', list).forEach(x => x.classList.remove('active')); } }, 'Play the whole course');
   const newCount = c.segments.filter(s => (findingsBySeg[s.id] || []).some(f => S.status[f.id] === 'published')).length;
-  d.append(el('div', { class: 'cd-head' }, el('div', {}, el('h2', {}, c.title), el('p', { class: 'm' }, `${c.format} · narrated by ${c.voice.name} · ${c.learners} · ${c.segments.length} narration lines`)), el('div', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'muted', style: 'font-size:14px' }, `${newCount} new line${newCount === 1 ? '' : 's'}, ${c.segments.length - newCount} untouched`))),
+  d.append(el('div', { class: 'cd-head' }, el('div', {}, el('h2', {}, c.title), el('p', { class: 'm' }, `${c.format} · ${c.learners} · ${c.segments.length} narration lines · ${voiceLine(c)}`)), el('div', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'muted', style: 'font-size:14px' }, `${newCount} new line${newCount === 1 ? '' : 's'}, ${c.segments.length - newCount} untouched`))),
     st, el('div', { class: 'legend' }, el('span', {}, el('i', { class: 'fixed' }), 'new line'), el('span', {}, el('i', { class: 'verified' }), 'checked, still true'), el('span', {}, el('i', { class: 'drift' }), 'out of date'), el('span', {}, el('i', { class: 'critical' }), 'critical')), list, np,
     S.versions[c.id] ? el('details', { class: 'more' }, el('summary', {}, `Version note · ${S.versions[c.id]}`), el('pre', { class: 'vnote' }, versionNote(c))) : null);
 }
@@ -413,5 +425,5 @@ $('#help-body').append(
 /* ── boot ────────────────────────────────────────────────────────────────── */
 renderMorning(); refreshBadge();
 /* deep links for the presenter: #F11 opens that item, #courses opens the courses view, #inbox the queue */
-(() => { const h = (location.hash || '').slice(1); if (h === 'courses') showView('courses'); else if (h === 'inbox') { S.current = openIds()[0]; showView('inbox'); } else if (findingById[h]) select(h); else showView('morning'); })();
+(() => { const h = (location.hash || '').slice(1); if (h === 'courses') showView('courses'); else if (h.startsWith('course-') && courseById[h.slice(7)]) { S.course = h.slice(7); showView('courses'); } else if (h === 'inbox') { S.current = openIds()[0]; showView('inbox'); } else if (findingById[h]) select(h); else showView('morning'); })();
 })();

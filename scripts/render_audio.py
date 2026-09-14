@@ -31,7 +31,8 @@ def jobs():
             yield (s["id"] + "_orig", spk, s.get("tts") or s["script"], s["script"])
             f = fixes.get(s["id"])
             if f:
-                yield (s["id"] + "_fix", spk, f.get("tts_fixed") or f["fixed"], f["fixed"])
+                fspk = (f.get("voice_override") or {}).get("speaker_id", spk)
+                yield (s["id"] + "_fix", fspk, f.get("tts_fixed") or f["fixed"], f["fixed"])
                 if f.get("alt"):
                     yield (s["id"] + "_alt", spk, f["alt"].get("tts") or f["alt"]["text"], f["alt"]["text"])
 

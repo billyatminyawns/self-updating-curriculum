@@ -297,3 +297,8 @@ details.more[open] summary::before{transform:rotate(90deg)}
 .sl-connect .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sl-connect input{flex:1;min-width:180px;font:inherit;font-size:13px;padding:7px 10px;border-radius:6px;border:1px solid var(--sl-btn-line);background:var(--sl-btn);color:var(--sl-ink)}
 .sl-connect .live{color:var(--mint);font-weight:700}
+
+/* voice standards + links */
+.rules{display:grid;gap:6px;margin-top:12px;padding-left:18px;list-style:disc;font-size:14px;color:var(--ink-2)}
+.how-body a.lnk,.kv a.lnk{color:var(--sky);text-decoration:none;font-weight:500} .how-body a.lnk:hover,.kv a.lnk:hover{text-decoration:underline}
+.ccard .m.okv{color:var(--mint)} .ccard .m.badv{color:var(--serious)}

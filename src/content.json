@@ -123,6 +123,86 @@
         "learners": "1,200",
         "note": "Portal redesign Aug 2026"
       }
+    ],
+    "current": [
+      {
+        "title": "Security Essentials 2026",
+        "format": "Rise 360",
+        "owner": "Priya N.",
+        "standard": "compliance",
+        "voice": "Patrick K.",
+        "curriculum": "Security",
+        "learners": "4,800",
+        "last_reviewed": "2026-08-27",
+        "next_review": "2027-02-27",
+        "cadence": "Semiannual",
+        "status": "Current"
+      },
+      {
+        "title": "Manager Essentials: Coaching Conversations",
+        "format": "Storyline 360",
+        "owner": "Devon A.",
+        "standard": "policy",
+        "voice": "Wade C.",
+        "curriculum": "Leadership",
+        "learners": "610",
+        "last_reviewed": "2026-07-14",
+        "next_review": "2027-01-14",
+        "cadence": "Semiannual",
+        "status": "Current"
+      },
+      {
+        "title": "Customer Care: De-escalation",
+        "format": "Video",
+        "owner": "Devon A.",
+        "standard": "internal",
+        "voice": "Ava M.",
+        "curriculum": "Customer Care",
+        "learners": "740",
+        "last_reviewed": "2026-06-02",
+        "next_review": "2026-12-02",
+        "cadence": "Semiannual",
+        "status": "Current"
+      },
+      {
+        "title": "Agency Portal: Quoting a Home Policy",
+        "format": "Video",
+        "owner": "Devon A.",
+        "standard": "external",
+        "voice": "Patrick K.",
+        "curriculum": "Agent Onboarding",
+        "learners": "1,200",
+        "last_reviewed": "2026-08-20",
+        "next_review": "2026-11-20",
+        "cadence": "On release",
+        "status": "Current"
+      },
+      {
+        "title": "Workplace Safety: Office Ergonomics",
+        "format": "Rise 360",
+        "owner": "Priya N.",
+        "standard": "compliance",
+        "voice": "Patrick K.",
+        "curriculum": "Safety",
+        "learners": "1,900",
+        "last_reviewed": "2026-05-11",
+        "next_review": "2027-05-11",
+        "cadence": "Annual",
+        "status": "Current"
+      },
+      {
+        "title": "Data Privacy for Claims",
+        "format": "Rise 360",
+        "owner": "Jordan Ellis",
+        "standard": "compliance",
+        "voice": "Patrick K.",
+        "curriculum": "Ethics & Compliance",
+        "learners": "900",
+        "last_reviewed": "2025-09-30",
+        "next_review": "2026-09-30",
+        "cadence": "Annual",
+        "status": "Review due"
+      }
     ]
   },
   "sources": [
@@ -383,7 +463,9 @@
           "script": "That's the policy in fifteen minutes. Protect customer information, use your judgment, and ask when you're not sure. Next up, a short knowledge check.",
           "where": "Lesson 8 · Wrap-up"
         }
-      ]
+      ],
+      "standard": "policy",
+      "notion": "https://app.notion.com/p/3cf8c842c02a812e8846d04ad4ee134e"
     },
     {
       "id": "B",
@@ -455,7 +537,9 @@
           "script": "Once approved, the payment posts to the claim, and the customer receives a settlement letter automatically. That completes the walkthrough.",
           "where": "1:28 · Issue payment"
         }
-      ]
+      ],
+      "standard": "internal",
+      "notion": "https://app.notion.com/p/3cf8c842c02a819a983fcfed407043ac"
     },
     {
       "id": "C",
@@ -530,7 +614,9 @@
           "script": "By day ninety, you'll have finished your required training, met your team, and set your first goals with your manager. Welcome aboard.",
           "where": "Lesson 7 · Day ninety"
         }
-      ]
+      ],
+      "standard": "onboarding",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81948b82d11ff9a4120a"
     },
     {
       "id": "D",
@@ -590,7 +676,9 @@
           "script": "If something feels wrong, say something. That's the whole lesson.",
           "where": "Lesson 5 · Wrap-up"
         }
-      ]
+      ],
+      "standard": "compliance",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81bc85ece3d280e2efe4"
     },
     {
       "id": "E",
@@ -628,7 +716,9 @@
           "script": "Over six weeks you'll shadow a senior agent, quote your first policies in the sandbox, and sit for your certification.",
           "where": "The six weeks ahead"
         }
-      ]
+      ],
+      "standard": "external",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81cfb44cd8adc167be6e"
     }
   ],
   "findings": [
@@ -649,7 +739,9 @@
       "fixed": "Two generative AI tools are approved for business use at Alder: Microsoft 365 Copilot and Alder Assist. Other tools, including personal ChatGPT accounts, stay off-limits for work tasks.",
       "status": "auto",
       "short": "AI tools are approved now",
-      "headline": "This lesson still says generative AI is off-limits at Alder. The policy changed in August: two tools are approved."
+      "headline": "This lesson still says generative AI is off-limits at Alder. The policy changed in August: two tools are approved.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a811bad4ec7ad81dafed8",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F2",
@@ -668,7 +760,9 @@
       "fixed": "Customer and policyholder information may be used only in the approved tools, where it stays inside Alder's environment. Never enter it into any other AI tool, including personal accounts.",
       "status": "auto",
       "short": "Customer data rule changed",
-      "headline": "This lesson says customer data can never go into an AI tool. The new policy allows it inside the approved tools."
+      "headline": "This lesson says customer data can never go into an AI tool. The new policy allows it inside the approved tools.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81268adce4b92cf72b97",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F3",
@@ -691,7 +785,9 @@
       },
       "status": "auto",
       "short": "AI letters need a human review",
-      "headline": "This lesson says AI-drafted customer letters need no review. The policy now requires a person to review them before they are sent."
+      "headline": "This lesson says AI-drafted customer letters need no review. The policy now requires a person to review them before they are sent.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a813a99cce1dc621dbc4e",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F4",
@@ -710,7 +806,9 @@
       "tts_fixed": "If you're not sure whether a use is allowed, ask before you act. Questions go to the Responsible AI Office through the responsible A I channel in Slack.",
       "status": "auto",
       "short": "AI Council was renamed",
-      "headline": "This lesson sends questions to the AI Council and a Slack channel that no longer exist."
+      "headline": "This lesson sends questions to the AI Council and a Slack channel that no longer exist.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a813686ddde9675152100",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F5",
@@ -728,7 +826,9 @@
       "fixed": "From the left navigation, open the Settlement menu and choose Total Loss. The settlement worksheet opens, with the vehicle valuation on the right.",
       "status": "auto",
       "short": "Payments tab moved",
-      "headline": "This video tells adjusters to open a tab that moved in the August release."
+      "headline": "This video tells adjusters to open a tab that moved in the August release.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a8163a5ebd7bf60317004",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F6",
@@ -746,7 +846,9 @@
       "fixed": "If the settlement needs a supervisor's approval, select Pend. The claim waits in the queue until your supervisor signs off.",
       "status": "auto",
       "short": "“Hold for Review” was renamed",
-      "headline": "This video names a button that was renamed “Pend” in the August release."
+      "headline": "This video names a button that was renamed “Pend” in the August release.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a813997fbde7d29f79c5a",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "V1",
@@ -766,7 +868,9 @@
       "task": "Re-capture 0:14–0:31 in ClaimsCore 26.3 and drop the clip into the Kaltura draft. The re-voiced narration is already aligned to the new timing.",
       "note": "Narration can be re-voiced; a screen capture can't. The agents open the task and hold the new take until the footage is in.",
       "short": "Old menu on screen",
-      "headline": "The screen recording still shows the old menu. A voice can't fix that."
+      "headline": "The screen recording still shows the old menu. A voice can't fix that.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a8148b1b8e3a7953d5776",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F7",
@@ -785,7 +889,9 @@
       "fixed": "Alder works hybrid. Teams based in Austin and Dallas are in the office three days a week, Tuesday through Thursday, with exceptions approved by your manager.",
       "status": "auto",
       "short": "Remote-first is now hybrid",
-      "headline": "Onboarding still describes Alder as remote-first. Since September 1 it is three days in the office."
+      "headline": "Onboarding still describes Alder as remote-first. Since September 1 it is three days in the office.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a816bba1ac86be9a7d536",
+      "owner": "Priya N."
     },
     {
       "id": "F8",
@@ -803,7 +909,9 @@
       "fixed": "Alder is led by chief executive Priya Raman and a leadership team that started out in claims, underwriting, and the field.",
       "status": "auto",
       "short": "Former CEO named",
-      "headline": "Onboarding names Elena Marsh as CEO. Priya Raman was named CEO on August 17."
+      "headline": "Onboarding names Elena Marsh as CEO. Priya Raman was named CEO on August 17.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81889bd7fdfc049c3289",
+      "owner": "Priya N."
     },
     {
       "id": "V2",
@@ -823,7 +931,9 @@
       "task": "Request a new welcome video from the CEO's office (or approve a narrated placeholder slide) and replace the media in Lesson 1.",
       "note": "A person on camera can't be re-voiced into someone else. This one is a request, not a render.",
       "short": "Former CEO's welcome video",
-      "headline": "Lesson 1 plays a welcome video from the former CEO."
+      "headline": "Lesson 1 plays a welcome video from the former CEO.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a8129bbf4f7f056734e60",
+      "owner": "Priya N."
     },
     {
       "id": "F9",
@@ -843,7 +953,9 @@
       "status": "review",
       "note": "Two sources disagree. The proposed take follows the policy-level document (Benefits Guide 2027). Confirm which source is authoritative before this goes to 600 new hires.",
       "short": "Parental leave: 12 or 16 weeks?",
-      "headline": "Onboarding says 12 weeks of paid parental leave. The new Benefits Guide says 16, but the People Portal FAQ still says 12."
+      "headline": "Onboarding says 12 weeks of paid parental leave. The new Benefits Guide says 16, but the People Portal FAQ still says 12.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a814c8daad575d91209a0",
+      "owner": "Priya N."
     },
     {
       "id": "F10",
@@ -861,7 +973,9 @@
       "fixed": "Book travel and file expenses in Navan. Receipts are required for anything over twenty-five dollars.",
       "status": "auto",
       "short": "Concur was retired",
-      "headline": "Onboarding sends new hires to Concur for travel and expenses. Concur was retired in July; it is Navan now."
+      "headline": "Onboarding sends new hires to Concur for travel and expenses. Concur was retired in July; it is Navan now.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a8103becbe8030f89ffab",
+      "owner": "Priya N."
     },
     {
       "id": "F11",
@@ -881,14 +995,16 @@
       "tts_fixed": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at one, eight five five, five five five, zero one nine nine, or at speak up dot alder mutual dot com, twenty-four hours a day.",
       "status": "auto",
       "short": "Hotline number disconnected",
-      "headline": "This lesson gives a hotline number that was disconnected on August 31."
+      "headline": "This lesson gives a hotline number that was disconnected on August 31.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a81308218f0ab051c329d",
+      "owner": "Jordan Ellis"
     },
     {
       "id": "F12",
       "course": "E",
       "segment": "E1",
       "severity": "warning",
-      "category": "Product · Cross-reference",
+      "category": "Product · Voice standard",
       "sources": [
         "product",
         "catalog"
@@ -896,11 +1012,19 @@
       "confidence": 0.94,
       "claim": "Prerequisite “Security Basics 2023” and product “HomeShield Plus” with optional water backup",
       "course_says": "Security Basics 2023 … HomeShield Plus … water backup available as an add-on",
-      "source_says": "Security Basics 2023 retired Aug 27 (now Security Essentials 2026). HomeShield Plus renamed HomeShield Complete on Jul 20; water backup is standard.",
+      "source_says": "Security Basics 2023 retired Aug 27 (now Security Essentials 2026). HomeShield Plus renamed HomeShield Complete on Jul 20; water backup is standard. Voice standards (Aug 1, 2026): external training is narrated by Patrick K.; Rayna C. is retired.",
       "fixed": "Before your first sale, complete three foundations: Security Essentials 2026, Insurance Fundamentals, and HomeShield Complete product training. HomeShield Complete is our flagship homeowners policy, and water backup coverage is now included as standard.",
       "status": "auto",
-      "short": "Retired course, renamed product",
-      "headline": "The path intro names a course that was retired and a product that was renamed."
+      "short": "Retired course, renamed product, retired voice",
+      "headline": "The path intro names a course that was retired and a product that was renamed, and it is narrated by a voice no longer approved for external training.",
+      "notion": "https://app.notion.com/p/3cf8c842c02a8176a5f0c20e45d00fb9",
+      "owner": "Jordan Ellis",
+      "voice_override": {
+        "name": "Patrick K.",
+        "speaker_id": 19,
+        "standard": "external"
+      },
+      "note": "Rayna C. was retired from the approved-voice list in August. External training uses Patrick K., so the fix is re-recorded in his voice."
     }
   ],
   "scan": {
@@ -1030,5 +1154,87 @@
     "greeting": "Good morning, Jordan. Overnight I checked your five courses against everything that changed at Alder this summer.",
     "summary": "14 things are out of date. 11 have a fix ready for you to approve, in the original narrators' voices, with only the changed line re-recorded. 1 needs your call. 2 need a person.",
     "wellsaid": "11 new takes rendered in Wade C., Ava M., Sofia H., Patrick K. and Rayna C. Listen-back QA passed."
-  }
+  },
+  "links": {
+    "site": "https://billyatminyawns.github.io/self-updating-curriculum/",
+    "notion_hub": "https://app.notion.com/p/3cf8c842c02a81678c15d5157960e749",
+    "notion_inventory": "https://app.notion.com/p/87da156c8c5f4354b4694c09699c90fe",
+    "notion_findings": "https://app.notion.com/p/59ab598c5f65438da96a5b6a77f02d7b",
+    "notion_standards": "https://app.notion.com/p/3548a80ed1dd4e18a5769dc298ed48eb"
+  },
+  "voice_standards": [
+    {
+      "id": "external",
+      "content_type": "External training",
+      "who": "Appointed agents, partners, customers",
+      "voice": "Patrick K.",
+      "speaker_id": 19,
+      "style": "Narration",
+      "status": "Approved",
+      "effective": "2026-08-01",
+      "notes": "Authoritative and energetic. Anything an agent or customer hears."
+    },
+    {
+      "id": "internal",
+      "content_type": "Internal systems & how-to",
+      "who": "Employees learning a tool or a process",
+      "voice": "Ava M.",
+      "speaker_id": 31,
+      "style": "Narration",
+      "status": "Approved",
+      "effective": "2026-08-01",
+      "notes": "Clear and crisp for step-by-step screencasts."
+    },
+    {
+      "id": "compliance",
+      "content_type": "Compliance, ethics & safety",
+      "who": "All employees, mandatory",
+      "voice": "Patrick K.",
+      "speaker_id": 19,
+      "style": "Narration",
+      "status": "Approved",
+      "effective": "2026-08-01",
+      "notes": "Same voice as external training so the serious tone stays consistent."
+    },
+    {
+      "id": "policy",
+      "content_type": "Company policy & all-employee programs",
+      "who": "All employees",
+      "voice": "Wade C.",
+      "speaker_id": 30,
+      "style": "Narration",
+      "status": "Approved",
+      "effective": "2026-08-01",
+      "notes": "Calm and trustworthy; the house voice for policy explainers."
+    },
+    {
+      "id": "onboarding",
+      "content_type": "Onboarding & culture",
+      "who": "New hires",
+      "voice": "Sofia H.",
+      "speaker_id": 8,
+      "style": "Narration",
+      "status": "Approved",
+      "effective": "2026-08-01",
+      "notes": "Warm and welcoming."
+    },
+    {
+      "id": "retired",
+      "content_type": "Retired voice",
+      "who": "—",
+      "voice": "Rayna C.",
+      "speaker_id": 157,
+      "style": "Narration",
+      "status": "Retired",
+      "effective": "2026-08-01",
+      "notes": "Used by a 2025 vendor for agent onboarding. Retired when the standards were set; re-voice on the next touch."
+    }
+  ],
+  "style_rules": [
+    "Plain language, about an 8th-grade reading level",
+    "150 to 160 words per minute; short sentences",
+    "Numbers spelled out in narration; digits on screen",
+    "Captions and a transcript on every course",
+    "Company terms pronounced per the Alder pronunciation library: Alder, ClaimsCore (Claims Core), HomeShield, Navan, Copilot, Alder Assist"
+  ]
 }
