@@ -28,10 +28,14 @@ Human stops built in: F9 waits for a judgment call (conflicting sources), F3 sho
 ## Run of show (15 minutes)
 
 1. **Slides 1–4** (3 min): the library problem → what drifted this summer → the loop (six agents, one human).
-2. **Slide 5, then switch to the browser** (8 min): Notion first (Workflow board → the critical card → play published vs. new take → the judgment card → drag to Published → Sources / Activity), then the Drift Inbox (Slack digest → approve the critical finding → Approve all ready → judgment call → tasks → Library: play the republished module).
+2. **Slide 5, then switch to the browser** (8 min): Notion first (Workflow board → the critical card → play published vs. new take → the judgment card → drag to Published → Sources / Activity), then the Drift Inbox: it opens on the 7:42 AM Slack message → Start with the critical one → play today's line, play the fix, Approve & publish → Next → Edit the wording (Legal's wording, re-record) → Approve all → S for Slack (Priya republishes the Storyline course) → the judgment call → the two tasks → Courses: play the whole updated course.
 3. **Slides 6–9** (3 min): what just happened → where the fix goes back (the SCORM answer) → what stays human → bring us one stale course.
 
-Dashboard keys: `1–4` sections, `S` Slack panel, `T` light/dark, `?` presenter notes, **Reset demo** back to 7:42 AM. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
+Dashboard keys: `→`/`N` next item, `1`/`2` Inbox/Courses, `S` Slack panel, `H` How it works (agents, last night's log, sources, where fixes go back), `T` light/dark, `?` presenter notes, **Reset** back to 7:42 AM. Deep links: `#F11` opens the hotline item, `#courses` the courses view. Zoom the browser to 110–125 % on a 1080p projector. On a 720p projector (1280×720) the three-column layout gets tight: press `S` to hide Slack while you work the inbox, or set the display to 1080p. Light theme (`T`) is there for a washed-out room.
+
+## Real Slack, optional
+
+The Slack panel in the demo is simulated. To post for real during the talk: in your Slack workspace create a channel (for example `#ld-content-ops`), add an app with an **Incoming Webhook** pointing at it, open the demo's Slack panel (`S`) and paste the webhook URL into **Connect**. From then on every approval, hand-off, task and judgment call the demo posts also lands in the real channel (the built-in panel keeps working offline). The webhook URL is stored only in that browser.
 
 ## Does it make sense to export a SCORM file?
 

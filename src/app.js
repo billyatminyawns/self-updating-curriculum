@@ -1,14 +1,13 @@
-/* Drift Inbox — product-style stage demo (WellSaid × Continuity Intelligence), TechLearn 2026 */
+/* Drift Inbox — guided review flow for a stage demo (WellSaid × Continuity Intelligence), TechLearn 2026 */
 (() => {
 'use strict';
 const C = JSON.parse(document.getElementById('content-data').textContent);
 const AUDIO = JSON.parse(document.getElementById('audio-data').textContent || '{}');
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wait = ms => new Promise(r => setTimeout(r, reduced ? 0 : ms));
 const nf = new Intl.NumberFormat('en-US');
-const fdate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const fdate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 const fshort = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const el = (tag, attrs = {}, ...kids) => {
   const n = document.createElement(tag);
@@ -21,34 +20,31 @@ const el = (tag, attrs = {}, ...kids) => {
   return n;
 };
 
-/* ── indexes ─────────────────────────────────────────────────────────────── */
+/* ── data ────────────────────────────────────────────────────────────────── */
 const courseById = Object.fromEntries(C.courses.map(c => [c.id, c]));
 const segById = {}; C.courses.forEach(c => c.segments.forEach(s => { segById[s.id] = Object.assign({ course: c.id }, s); }));
 const findingById = Object.fromEntries(C.findings.map(f => [f.id, f]));
 const sourceById = Object.fromEntries(C.sources.map(s => [s.id, s]));
 const narration = f => !!f.fixed;
 const findingsBySeg = {}; C.findings.filter(narration).forEach(f => { (findingsBySeg[f.segment] ||= []).push(f); });
-const byCourse = {}; C.findings.forEach(f => { (byCourse[f.course] ||= []).push(f); });
-const SEV = { critical: 'Critical', serious: 'Serious', warning: 'Warning' }, SEV_ORDER = { critical: 0, serious: 1, warning: 2 };
-const OWNER = { ci: 'Continuity Intelligence', ws: 'WellSaid', flow: 'Workflow' };
+const byCourse = {}; C.courses.forEach(c => { byCourse[c.id] = C.findings.filter(f => f.course === c.id); });
+const SEV_ORDER = { critical: 0, serious: 1, warning: 2 };
+const ORDER = C.courses.flatMap(c => byCourse[c.id].slice().sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity] || a.id.localeCompare(b.id, undefined, { numeric: true })).map(f => f.id));
 const P = C.slack.people, ME = C.company.persona;
-
-/* ── state ───────────────────────────────────────────────────────────────── */
-const S = { view: 'inbox', filter: 'all', selected: 'F11', status: {}, take: {}, notify: {}, versions: {}, today: [], batch: false, editing: null, libSel: 'A' };
-C.findings.forEach(f => { S.status[f.id] = f.status === 'auto' ? 'open' : f.status; S.take[f.id] = 'fix'; S.notify[f.id] = f.material ? 'notify' : 'quiet'; });
 const RESOLVED = new Set(['published', 'dismissed', 'task_created']);
-const NEEDS_ME = new Set(['open', 'review', 'task', 'snoozed']);
-const STATUS = { open: 'New take ready', review: 'Needs your judgment', task: 'Task for a person', publishing: 'Publishing…', handoff: 'Sent to Priya N.', published: 'Published', task_created: 'Task created', dismissed: 'Marked accurate', snoozed: 'Snoozed · Oct 1' };
-const PILL = { open: 'good', review: 'review', task: 'task', publishing: 'ci busy', handoff: 'task busy', published: 'good', task_created: 'task', dismissed: 'muted', snoozed: 'muted' };
+const NEEDS_ME = new Set(['open', 'review', 'task']);
+const LABEL = { open: 'Fix ready', review: 'Needs your call', task: 'Needs a person', publishing: 'Publishing…', handoff: 'With Priya', published: 'Published', task_created: 'Task created', dismissed: 'Kept as is' };
 
-/* demo clock */
+const S = { view: 'morning', current: null, status: {}, take: {}, notify: {}, versions: {}, editing: null, batch: false, batchDone: false, course: 'A', todayLog: [] };
+C.findings.forEach(f => { S.status[f.id] = f.status === 'auto' ? 'open' : f.status; S.take[f.id] = 'fix'; S.notify[f.id] = f.material ? 'notify' : 'quiet'; });
+
 let minutes = 7 * 60 + 42;
 const clockStr = () => { const h = Math.floor(minutes / 60), m = minutes % 60; return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
-const drawClock = () => { $('#clock').textContent = `${C.meta.weekday}, ${fdate(C.meta.date)} · ${clockStr()}`; };
+const drawClock = () => { $('#clock').textContent = `${C.meta.weekday}, ${fshort(C.meta.date)}, 2026 · ${clockStr()}`; };
 const tick = (n = 1) => { minutes += n; drawClock(); };
 drawClock();
 
-/* ── text diff ───────────────────────────────────────────────────────────── */
+/* ── word diff ───────────────────────────────────────────────────────────── */
 const toks = s => s.split(/\s+/).filter(Boolean), norm = w => w.toLowerCase().replace(/[^a-z0-9]/g, '');
 function diffWords(a, b) {
   const A = toks(a), B = toks(b), na = A.map(norm), nb = B.map(norm), m = A.length, n = B.length;
@@ -62,8 +58,6 @@ function diffWords(a, b) {
 }
 const staleMask = (o, f) => { const mk = []; diffWords(o, f).forEach(op => { if (op.type !== 'ins') op.words.forEach(() => mk.push(op.type === 'del')); }); return mk; };
 const freshMask = (o, f) => { const mk = []; diffWords(o, f).forEach(op => { if (op.type !== 'del') op.words.forEach(() => mk.push(op.type === 'ins')); }); return mk; };
-function diffNode(o, f) { const n = el('p', { class: 'diff' }); diffWords(o, f).forEach((op, i) => { const t = op.words.join(' '); if (op.type === 'eq') n.append((i ? ' ' : '') + t); else { if (i) n.append(' '); n.append(el(op.type === 'del' ? 'del' : 'ins', {}, t)); } }); return n; }
-function changeSummary(o, f) { const ops = diffWords(o, f); const changed = ops.filter(op => op.type !== 'eq').reduce((a, op) => a + op.words.length, 0), total = toks(o).length; const n = el('span', { class: 'change' }); if (changed / total > 0.45) { n.append(el('span', { style: 'color:var(--ink-3);font-family:var(--font-mono);font-size:12px' }, 'rewritten · '), el('ins', {}, f)); return n; } let first = true; ops.forEach(op => { if (op.type === 'eq') return; if (!first) n.append(' '); first = false; n.append(el(op.type === 'del' ? 'del' : 'ins', {}, op.words.join(' '))); }); return n; }
 
 /* ── audio ───────────────────────────────────────────────────────────────── */
 const players = {}; const clipFor = k => AUDIO[k] || null;
@@ -72,7 +66,7 @@ let current = null;
 function stopAll() { if (!current) return; const c = current; current = null; c.el.pause(); c.el.currentTime = 0; c.cleanup && c.cleanup(); }
 function playClip(key, hooks = {}) {
   return new Promise(resolve => {
-    stopAll(); const e = audioEl(key); if (!e) { toast('That clip is not in the offline demo.'); resolve(false); return; }
+    stopAll(); const e = audioEl(key); if (!e) { toast('That line is not in the offline demo.'); resolve(false); return; }
     const words = clipFor(key).words || []; let raf = 0, last = -1;
     const tk = () => { const t = e.currentTime; let idx = -1; for (let i = 0; i < words.length; i++) { if (t >= words[i][0] - 0.02) idx = i; else break; } if (idx !== last) { last = idx; hooks.onWord && hooks.onWord(idx); } hooks.onTime && hooks.onTime(t, e.duration || clipFor(key).duration); cancelAnimationFrame(raf); raf = requestAnimationFrame(tk); };
     const done = ok => { cancelAnimationFrame(raf); e.onended = null; e.ontimeupdate = null; hooks.onEnd && hooks.onEnd(ok); resolve(ok); };
@@ -86,13 +80,13 @@ function playClip(key, hooks = {}) {
 const fmtTime = s => { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 function scriptNode(text, mask = [], kind = '') { const p = el('p', { class: 'script' }); const T = toks(text); T.forEach((w, i) => { p.append(el('span', { class: 'w' + (mask[i] ? ' ' + kind : ''), 'data-i': i }, w)); if (i < T.length - 1) p.append(' '); }); return p; }
 function highlightWord(sc, idx) { $$('.w.on', sc).forEach(w => w.classList.remove('on')); if (idx >= 0) { const w = sc.querySelector(`.w[data-i="${idx}"]`); w && w.classList.add('on'); } }
-function player({ key, text, mask, kind, label, course, tone, tag }) {
+function player({ key, text, mask, kind, label, sub, course, tone }) {
   const clip = clipFor(key), c = courseById[course];
   const box = el('div', { class: 'player ' + (tone || '') + (clip ? '' : ' pending') });
-  const btn = el('button', { class: 'pbtn ' + (tone === 'fresh' ? 'mint' : tone === 'stale' ? 'amber' : ''), 'aria-label': 'Play ' + label, disabled: !clip }, el('span', { class: 'ic' }));
+  const btn = el('button', { class: 'pbtn ' + (tone === 'fresh' ? 'mint' : 'amber'), 'aria-label': 'Play: ' + label, disabled: !clip }, el('span', { class: 'ic' }));
   const bar = el('div', { class: 'bar' }, el('i')), time = el('span', { class: 'time num' }, clip ? fmtTime(clip.duration) : '–:––');
   const sc = scriptNode(text, mask, kind);
-  box.append(el('div', { class: 'ph' }, el('div', { class: 'who' }, el('b', {}, label), el('span', {}, `${c.voice.name} · ${c.voice.style}`)), tag || null), el('div', { class: 'pc' }, btn, bar, time), sc);
+  box.append(el('div', { class: 'ph' }, el('span', { class: 'lbl' }, el('b', {}, label), sub ? ' · ' + sub : ''), el('span', { class: 'nar' }, `${c.voice.name} · WellSaid`)), el('div', { class: 'pc' }, btn, bar, time), sc);
   let playing = false; const setPlaying = v => { playing = v; btn.classList.toggle('playing', v); };
   btn.addEventListener('click', () => { if (playing) { stopAll(); return; } playClip(key, { onStart: () => setPlaying(true), onWord: i => highlightWord(sc, i), onTime: (t, d) => { bar.firstChild.style.width = (d ? t / d * 100 : 0) + '%'; time.textContent = fmtTime(t); }, onEnd: () => { setPlaying(false); highlightWord(sc, -1); bar.firstChild.style.width = '0%'; time.textContent = fmtTime(clip.duration); } }); });
   box.play = () => { if (!playing) btn.click(); }; return box;
@@ -104,340 +98,320 @@ const takeText = f => S.take[f.id] === 'alt' && f.alt ? f.alt.text : f.fixed;
 function segState(s) {
   const fs = findingsBySeg[s.id] || []; if (!fs.length) return 'verified';
   if (fs.some(f => S.status[f.id] === 'published')) return 'fixed';
-  if (fs.some(f => S.status[f.id] === 'handoff' || S.status[f.id] === 'publishing')) return 'pending';
+  if (fs.some(f => ['handoff', 'publishing'].includes(S.status[f.id]))) return 'pending';
   if (fs.every(f => S.status[f.id] === 'dismissed')) return 'verified';
   return fs.some(f => f.severity === 'critical') ? 'critical' : 'drift';
 }
-function courseScore(c) { const fs = (byCourse[c.id] || []).filter(narration); if (!fs.length) return c.score; const done = fs.filter(f => ['published', 'dismissed'].includes(S.status[f.id])).length; return Math.round(c.score + (100 - c.score) * done / fs.length); }
-const myHealth = () => Math.round(C.courses.reduce((a, c) => a + courseScore(c), 0) / C.courses.length);
-function strip(course) { const n = el('div', { class: 'strip', role: 'img', 'aria-label': `${course.title}: ${course.segments.length} narration segments`, 'data-course': course.id }); course.segments.forEach(s => n.append(el('div', { class: 'seg ' + segState(s), title: `${s.id} · ${s.title}`, 'data-seg': s.id, style: `--w:${toks(s.script).length}` }, el('span', { class: 'seg-label' }, s.id)))); return n; }
-function refreshStrips() { $$('.strip .seg').forEach(seg => { const s = segById[seg.dataset.seg]; if (!s) return; seg.className = 'seg ' + segState(s) + (seg.classList.contains('playing') ? ' playing' : ''); }); }
-const statusPill = id => el('span', { class: 'pill ' + (PILL[S.status[id]] || '') }, el('i', { class: 'dot' }), S.status[id] === 'published' && S.versions[findingById[id].course] ? `Published ${S.versions[findingById[id].course]}` : STATUS[S.status[id]]);
-const sevPill = f => el('span', { class: 'pill ' + f.severity }, SEV[f.severity]);
-const sourcesOf = f => f.sources.map(id => sourceById[id]);
+function courseScore(c) { const fs = byCourse[c.id].filter(narration); const done = fs.filter(f => ['published', 'dismissed'].includes(S.status[f.id])).length; return fs.length ? Math.round(c.score + (100 - c.score) * done / fs.length) : c.score; }
+function strip(c) { const n = el('div', { class: 'strip', role: 'img', 'aria-label': `${c.title}: ${c.segments.length} narration lines`, 'data-course': c.id }); c.segments.forEach(s => n.append(el('div', { class: 'seg ' + segState(s), 'data-seg': s.id, title: s.where, style: `--w:${toks(s.script).length}` }))); return n; }
+const openIds = () => ORDER.filter(id => NEEDS_ME.has(S.status[id]));
+const readyIds = () => ORDER.filter(id => S.status[id] === 'open');
 
-/* ── toast / modal / theme ───────────────────────────────────────────────── */
-let toastT = 0; function toast(msg, ms = 3200) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms); }
+/* ── chrome: toast, theme, sheets, help ──────────────────────────────────── */
+let toastT = 0; function toast(msg, ms = 3400) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms); }
 function applyTheme(t) { if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); else document.documentElement.removeAttribute('data-theme'); }
 function toggleTheme() { const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; applyTheme(next); try { localStorage.setItem('suc-theme', next); } catch (_) {} }
 try { const t = localStorage.getItem('suc-theme'); if (t) applyTheme(t); } catch (_) {}
 $('#theme').addEventListener('click', toggleTheme);
 $('#reset').addEventListener('click', () => { stopAll(); location.reload(); });
-$('#slack-toggle').addEventListener('click', () => { $('#app').classList.toggle('slack-collapsed'); $('#slack-toggle').classList.toggle('on', !$('#app').classList.contains('slack-collapsed')); });
-$('#slack-toggle').classList.add('on');
+const sheets = { slack: $('#slack'), how: $('#how') };
+function openSheet(id) { Object.entries(sheets).forEach(([k, s]) => { s.hidden = k !== id; }); $('#slack-toggle').classList.toggle('on', id === 'slack'); $('#how-toggle').classList.toggle('on', id === 'how'); if (id === 'slack') { const m = $('#sl-msgs'); m.scrollTop = m.scrollHeight; } }
+function closeSheets() { Object.values(sheets).forEach(s => { s.hidden = true; }); $('#slack-toggle').classList.remove('on'); $('#how-toggle').classList.remove('on'); }
+function toggleSheet(id) { sheets[id].hidden ? openSheet(id) : closeSheets(); }
+$('#slack-toggle').addEventListener('click', () => toggleSheet('slack'));
+$('#how-toggle').addEventListener('click', () => toggleSheet('how'));
+$$('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
 const help = $('#help-modal'); $('#help').addEventListener('click', () => { help.hidden = false; }); $('#help-close').addEventListener('click', () => { help.hidden = true; }); help.addEventListener('click', e => { if (e.target === help) help.hidden = true; });
 document.addEventListener('keydown', e => {
   if (e.target.matches('input,textarea,select')) return;
-  if (e.key === 'Escape') { help.hidden = true; return; }
+  if (e.key === 'Escape') { help.hidden = true; closeSheets(); return; }
   if (e.key === '?') { help.hidden = !help.hidden; return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
-  if (k === 't') toggleTheme(); else if (k === 's') $('#slack-toggle').click();
-  else if (['1', '2', '3', '4'].includes(k)) showView(['inbox', 'library', 'sources', 'activity'][+k - 1]);
+  if (k === 't') toggleTheme(); else if (k === 's') toggleSheet('slack'); else if (k === 'h') toggleSheet('how');
+  else if (k === '1') showView('inbox'); else if (k === '2') showView('courses');
+  else if (e.key === 'ArrowRight' || k === 'n') { if (S.view === 'inbox') step(1); } else if (e.key === 'ArrowLeft' || k === 'p') { if (S.view === 'inbox') step(-1); }
 });
 
 /* ── views ───────────────────────────────────────────────────────────────── */
-function showView(v) { S.view = v; $$('.view').forEach(x => { x.hidden = x.id !== 'view-' + v; }); $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v)); if (v === 'library') renderLibrary(); if (v === 'activity') renderActivity(); if (v === 'sources') renderSources(); }
-$$('.nav-btn').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-
-/* sidebar */
-(() => {
-  C.company.integrations.forEach(i => $('#integrations').append(el('li', {}, i)));
-  C.agents.forEach(a => $('#agents-mini').append(el('li', {}, el('span', { class: 'own ' + a.owner }, a.owner === 'ci' ? 'CI' : a.owner === 'ws' ? 'WS' : 'FLOW'), el('span', {}, el('b', {}, a.name), ' · ', a.role.split('.')[0].replace(/^Follows/, 'follows').replace(/^Pulls/, 'pulls').replace(/^Proposes/, 'proposes').replace(/^Re-renders/, 're-renders').replace(/^Listens/, 'listens').replace(/^Splices/, 'splices')))));
-  $('#src-count').textContent = C.sources.length + C.unchanged_sources.length;
-  $('#sl-members').textContent = `${C.slack.members} members`;
-})();
-function refreshSidebar() {
-  const h = myHealth(); $('#my-health').textContent = h; const bar = $('#my-health-bar'); bar.style.width = h + '%'; bar.classList.toggle('good', h >= 90);
-  const open = C.findings.filter(f => NEEDS_ME.has(S.status[f.id])).length; const b = $('#inbox-badge'); b.textContent = open; b.classList.toggle('zero', open === 0);
-  $('#my-health-note').textContent = open ? `${open} item${open === 1 ? '' : 's'} waiting on you across ${C.courses.length} courses` : 'Everything you own is current.';
-  const lib = $('#library-sub'); if (lib) lib.innerHTML = `${C.library.courses} courses · ${nf.format(C.library.segments)} narration segments · library health <b>${C.library.health_before}</b> before tonight's approvals.`;
+function showView(v) {
+  S.view = v; $$('.view').forEach(x => { x.hidden = x.id !== 'view-' + v; });
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === (v === 'morning' ? 'inbox' : v)));
+  if (v === 'inbox') { if (!S.current) S.current = openIds()[0] || ORDER[0]; renderQueue(); renderReview(); }
+  if (v === 'courses') renderCourses();
 }
+$$('.tab').forEach(t => t.addEventListener('click', () => showView(t.dataset.view)));
+function refreshBadge() { const n = openIds().length; const b = $('#badge'); b.textContent = n; b.classList.toggle('zero', n === 0); }
+function select(id) { S.current = id; S.editing = null; if (S.view !== 'inbox') showView('inbox'); else { renderQueue(); renderReview(); } }
+function step(dir) { const i = ORDER.indexOf(S.current); let j = i + dir; while (j >= 0 && j < ORDER.length && !NEEDS_ME.has(S.status[ORDER[j]]) && dir > 0) j++; if (j < 0 || j >= ORDER.length) { j = dir > 0 ? (openIds()[0] ? ORDER.indexOf(openIds()[0]) : ORDER.length - 1) : 0; } select(ORDER[j]); }
+function nextOpen() { const i = ORDER.indexOf(S.current); const after = ORDER.slice(i + 1).find(id => NEEDS_ME.has(S.status[id])) || openIds()[0]; return after || null; }
 
-/* ── inbox ───────────────────────────────────────────────────────────────── */
-const FILTERS = [['all', 'All', () => true], ['ready', 'Ready', f => S.status[f.id] === 'open'], ['review', 'Needs judgment', f => S.status[f.id] === 'review'], ['tasks', 'Tasks', f => ['task', 'task_created'].includes(S.status[f.id])], ['done', 'Done', f => ['published', 'dismissed', 'handoff', 'publishing', 'snoozed'].includes(S.status[f.id])]];
-function renderFilters() { const h = $('#filters'); h.innerHTML = ''; FILTERS.forEach(([id, label, fn]) => h.append(el('button', { class: 'filter' + (S.filter === id ? ' on' : ''), role: 'tab', 'aria-selected': S.filter === id, onclick: () => { S.filter = id; renderInbox(); } }, label, el('span', { class: 'c' }, C.findings.filter(fn).length)))); }
-function renderInboxHead() {
-  const ready = C.findings.filter(f => S.status[f.id] === 'open').length, rev = C.findings.filter(f => S.status[f.id] === 'review').length, tasks = C.findings.filter(f => S.status[f.id] === 'task').length, done = C.findings.filter(f => RESOLVED.has(S.status[f.id])).length;
-  $('#inbox-sub').innerHTML = `Overnight scan finished <b>${C.scan.finished}</b> · ${C.scan.findings} findings library-wide · in your ${C.courses.length} courses: <b>${ready} new take${ready === 1 ? '' : 's'} ready</b> · ${rev} need${rev === 1 ? 's' : ''} your judgment · ${tasks} task${tasks === 1 ? '' : 's'}${done ? ` · <b>${done} done</b>` : ''}`;
-  const b = $('#approve-all'); b.disabled = ready === 0 || S.batch; b.textContent = S.batch ? 'Publishing…' : ready ? `Approve all ready (${ready})` : 'All ready takes approved';
-}
-function renderInbox() {
-  renderFilters(); renderInboxHead(); refreshSidebar();
-  const fn = FILTERS.find(x => x[0] === S.filter)[2]; const list = $('#ilist'); list.innerHTML = '';
+/* ── morning ─────────────────────────────────────────────────────────────── */
+function renderMorning() {
+  const m = $('#morning-card'); m.innerHTML = '';
+  const crit = C.findings.find(f => f.severity === 'critical');
+  const list = el('ul', { class: 'courses' });
   C.courses.forEach(c => {
-    const fs = (byCourse[c.id] || []).filter(fn).sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity] || a.id.localeCompare(b.id, undefined, { numeric: true }));
-    if (!fs.length) return;
-    const g = el('div', { class: 'cgroup' });
-    const sc = courseScore(c);
-    g.append(el('div', { class: 'cg-head' }, el('div', { class: 't' }, el('b', {}, c.title), el('span', {}, `${c.format} · ${c.voice.name} · ${c.learners}`)), el('div', { class: 'sc' }, 'health ', el('b', {}, sc), S.versions[c.id] ? el('span', { class: 'pill good' }, S.versions[c.id]) : null), strip(c)));
-    fs.forEach(f => {
-      const seg = segById[f.segment], st = S.status[f.id], done = RESOLVED.has(st);
-      const row = el('button', { class: `irow ${f.severity}${done ? ' done' : ''}${S.selected === f.id ? ' active' : ''}`, 'data-id': f.id, onclick: () => selectFinding(f.id) },
-        el('span', { class: 'stripe' }),
-        el('span', { class: 'ir-main' }, el('b', {}, f.claim), el('span', { class: 'sub' }, el('span', { class: 'fid' }, f.id), el('span', {}, `${seg.id} · ${seg.title}`), el('span', {}, f.category), el('span', {}, sourcesOf(f)[0].name)), narration(f) ? changeSummary(seg.script, takeText(f)) : el('span', { class: 'change' }, f.category === 'Media' ? 'replace media · ' + f.course_says : 'screen capture · ' + seg.at)),
-        el('span', { class: 'ir-side' }, statusPill(f.id), narration(f) && clipFor(takeKey(f)) ? el('button', { class: 'btn small', onclick: e => { e.stopPropagation(); selectFinding(f.id); const pl = $('#idetail .player.fresh'); pl && pl.play(); } }, el('span', { class: 'play-ic' }), 'New take') : null));
-      g.append(row);
-    });
-    list.append(g);
+    const fs = byCourse[c.id]; const isCrit = fs.some(f => f.severity === 'critical');
+    const shorts = fs.slice().sort((a, b) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity]).map(f => f.short);
+    list.append(el('li', { role: 'button', tabindex: 0, onclick: () => select(fs[0].id) }, el('span', { class: 'dot' + (isCrit ? ' critical' : '') }), el('span', {}, el('b', {}, c.title), el('span', { class: 'sub' }, shorts.join(' · '))), el('span', { class: 'n' }, `${fs.length} ${fs.length === 1 ? 'item' : 'items'}`)));
   });
-  if (!list.children.length) list.append(el('div', { class: 'empty-detail' }, 'Nothing here.'));
-  renderDetail();
+  m.append(
+    el('div', { class: 'stamp' }, el('span', {}, `# ld-content-ops`), el('span', {}, '·'), el('span', {}, `${C.meta.weekday}, ${fshort(C.meta.date)} · ${C.scan.finished}`)),
+    el('div', { class: 'msg' }, el('span', { class: 'avatar sky' }, 'CI'), el('div', {},
+      el('div', { class: 'who' }, el('b', {}, 'Continuity'), el('span', { class: 'app-tag' }, 'app'), el('span', { class: 'time' }, C.scan.finished)),
+      el('div', { class: 'text' }, el('span', { class: 'lede' }, C.morning.greeting), el('b', {}, C.morning.summary)),
+      list,
+      el('div', { class: 'actions' }, el('button', { class: 'btn primary', onclick: () => select(crit.id) }, 'Start with the critical one'), el('button', { class: 'btn', onclick: () => { S.current = openIds()[0]; showView('inbox'); } }, 'See the whole queue')))),
+    el('div', { class: 'msg sub' }, el('span', { class: 'avatar mint' }, 'W'), el('div', {}, el('div', { class: 'who' }, el('b', {}, 'WellSaid'), el('span', { class: 'app-tag' }, 'app'), el('span', { class: 'time' }, '2:07 AM')), el('div', { class: 'text' }, C.morning.wellsaid))),
+    el('p', { class: 'morning-foot' }, `You are ${ME.name}, ${ME.role} at ${C.company.name} (fictional). Press ? for presenter notes.`));
 }
-function selectFinding(id) { S.selected = id; S.editing = null; if (S.view !== 'inbox') showView('inbox'); $$('#ilist .irow').forEach(r => r.classList.toggle('active', r.dataset.id === id)); renderDetail(); const r = $(`#ilist .irow[data-id="${id}"]`); r && r.scrollIntoView({ block: 'nearest' }); }
 
+/* ── queue ───────────────────────────────────────────────────────────────── */
+function dotClass(f) { const st = S.status[f.id]; if (RESOLVED.has(st)) return st === 'dismissed' ? 'muted' : 'done'; if (st === 'publishing' || st === 'handoff') return 'busy'; if (st === 'review') return 'call'; if (st === 'task') return 'task'; return f.severity === 'critical' ? 'critical' : ''; }
+function renderQueue() {
+  refreshBadge(); const q = $('#queue'); q.innerHTML = '';
+  const ready = readyIds().length;
+  q.append(el('div', { class: 'q-head' }, el('div', { class: 't' }, el('h2', {}, 'Your queue'), el('span', { class: 'count num' }, `${openIds().length} of ${ORDER.length} left`)), el('button', { class: 'btn small primary', disabled: ready < 2 || S.batch, onclick: approveAll }, S.batch ? 'Working…' : ready >= 2 ? `Approve all ${ready} ready` : ready === 1 ? 'One left to approve' : 'All fixes approved')));
+  C.courses.forEach(c => {
+    const fs = ORDER.filter(id => findingById[id].course === c.id);
+    q.append(el('div', { class: 'q-course' }, el('b', {}, c.title), el('span', {}, `${c.format} · ${c.voice.name}`)));
+    fs.forEach(id => { const f = findingById[id], st = S.status[id]; q.append(el('button', { class: 'q-item' + (id === S.current ? ' active' : '') + (RESOLVED.has(st) ? ' done' : ''), onclick: () => select(id) }, el('span', { class: 'dot ' + dotClass(f) }), el('span', { class: 'l' }, el('b', {}, f.short), el('span', {}, st === 'published' && S.versions[c.id] ? `Published · ${S.versions[c.id]}` : LABEL[st])))); });
+  });
+}
+
+/* ── review card ─────────────────────────────────────────────────────────── */
 function mockScreen(f, after) {
   const orders = f.id !== 'F6';
   const side = el('div', { class: 'side' }, el('div', { class: 'brandm' }, 'ClaimsCore · ' + (after ? '26.3' : '26.2')), el('div', { class: 'item' }, 'Claim'));
   if (!after) side.append(el('div', { class: 'item' + (orders ? ' hi' : '') }, 'Payments'), el('div', { class: 'item' }, 'Documents'), el('div', { class: 'item' }, 'Notes'), el('div', { class: 'item' }, 'Tasks'));
   else side.append(el('div', { class: 'item' + (orders ? ' hi good' : '') }, 'Settlement ▾'), el('div', { class: 'item sub' + (orders ? ' hi good' : '') }, 'Total Loss'), el('div', { class: 'item sub' }, 'Partial'), el('div', { class: 'item' }, 'Documents'), el('div', { class: 'item' }, 'Notes'));
   const main = el('div', { class: 'mainp' }, el('div', { class: 'ttl' }, 'Settlement worksheet · Total loss'), el('div', { class: 'row', style: '--w:70%' }), el('div', { class: 'row', style: '--w:45%' }), el('div', { class: 'row', style: '--w:60%' }), el('div', { class: 'btns' }, el('span', { class: 'b pri' }, 'Issue payment'), el('span', { class: 'b' + (!orders ? (after ? ' hi good' : ' hi') : '') }, after ? 'Pend' : 'Hold for Review'), el('span', { class: 'b' }, 'Cancel')));
-  return el('div', { class: 'mock', role: 'img', 'aria-label': after ? 'ClaimsCore 26.3 screen' : 'ClaimsCore 26.2 screen as captured in the video' }, side, main);
+  return el('div', { class: 'mock', role: 'img', 'aria-label': after ? 'Current screen' : 'Screen as recorded' }, side, main);
 }
 function mockCompare(f) {
   const wrap = el('div', { class: 'mock-wrap' }); let after = false; const mock = el('div');
-  const b1 = el('button', { class: 'btn small', onclick: () => { after = false; draw(); } }, 'As captured in the video'), b2 = el('button', { class: 'btn small', onclick: () => { after = true; draw(); } }, 'Current release 26.3');
+  const b1 = el('button', { class: 'btn small', onclick: () => { after = false; draw(); } }, 'In the video'), b2 = el('button', { class: 'btn small', onclick: () => { after = true; draw(); } }, 'Today');
   const draw = () => { mock.innerHTML = ''; mock.append(mockScreen(f, after)); b1.classList.toggle('on', !after); b2.classList.toggle('on', after); };
-  wrap.append(el('div', { class: 'mock-toggle' }, b1, b2), mock, el('div', { class: 'mock-cap' }, el('span', {}, `frame at ${segById[f.segment].at} · ${courseById[f.course].title}`), el('span', {}, narration(f) ? 'narration: re-voiced' : 'screen capture: needs new footage')));
+  wrap.append(el('div', { class: 'mock-toggle' }, b1, b2), mock, el('div', { class: 'mock-cap' }, el('span', {}, `frame at ${segById[f.segment].at}`), el('span', {}, narration(f) ? 'the narration can be re-voiced' : 'the recording needs a person')));
   draw(); return wrap;
 }
-function pubInfo(c) { const p = c.publish; return el('dl', { class: 'pubinfo' }, el('dt', {}, 'Goes back to'), el('dd', {}, el('b', {}, p.target), ` · ${p.package} · ${S.versions[c.id] ? S.versions[c.id].replace('→', '→') : p.version}`), el('dt', {}, 'How'), el('dd', {}, p.how), p.handoff ? el('dt', {}, 'Hand-off') : null, p.handoff ? el('dd', {}, el('b', {}, p.handoff), ' · course owner in Storyline · the new takes, the diff and a change list land in her queue') : null); }
 function versionNote(c) {
-  const fs = (byCourse[c.id] || []).filter(f => narration(f) && S.status[f.id] === 'published');
+  const fs = byCourse[c.id].filter(f => narration(f) && S.status[f.id] === 'published');
   const srcs = [...new Set(fs.flatMap(f => f.sources))].map(id => `${sourceById[id].name} (${fshort(sourceById[id].date)})`);
-  const material = fs.some(f => f.material);
-  return `${S.versions[c.id] || c.publish.version.split('→')[1].trim()} · ${c.title}\nPublished ${fdate(C.meta.date)} ${clockStr()} by ${ME.name} · ${fs.length} segment${fs.length === 1 ? '' : 's'} re-voiced (${c.voice.name}) · captions and transcript regenerated\n` + fs.map(f => `• ${f.segment} ${segById[f.segment].title}: ${f.claim}`).join('\n') + `\nSources: ${srcs.join('; ')}\nLearners: ${material ? (S.notify[fs.find(f => f.material).id] === 'reassign' ? 're-assigned for re-completion' : S.notify[fs.find(f => f.material).id] === 'notify' ? 'notified of a material change' : 'updated in place') : 'updated in place, completions preserved'}`;
+  const mat = fs.find(f => f.material);
+  return `${S.versions[c.id]} · ${c.title}\nPublished ${fdate(C.meta.date)} ${clockStr()} by ${ME.name} · ${fs.length} line${fs.length === 1 ? '' : 's'} re-voiced (${c.voice.name}) · captions and transcript regenerated\n` + fs.map(f => `• ${segById[f.segment].where}: ${f.short}`).join('\n') + `\nSources: ${srcs.join('; ')}\nLearners: ${mat ? (S.notify[mat.id] === 'reassign' ? 're-assigned for re-completion' : S.notify[mat.id] === 'notify' ? 'notified of a material change' : 'updated in place') : 'updated in place, completions preserved'}`;
 }
-function renderDetail() {
-  const d = $('#idetail'); d.innerHTML = ''; const f = findingById[S.selected]; if (!f) { d.append(el('div', { class: 'empty-detail' }, 'Select a finding.')); return; }
-  const seg = segById[f.segment], c = courseById[f.course], srcs = sourcesOf(f), st = S.status[f.id];
-  d.append(el('div', { class: 'dt-head' }, el('div', { class: 'row' }, sevPill(f), el('span', { class: 'pill' }, f.category), el('span', { class: 'pill' }, `${Math.round(f.confidence * 100)}% confidence`), statusPill(f.id)), el('h2', { class: 'dt-title' }, f.claim),
-    el('p', { class: 'dt-meta' }, el('b', {}, c.title), ` · ${seg.id} “${seg.title}” · ${c.format} · narrated by ${c.voice.name} · last published ${fdate(c.updated)} · ${c.learners}`)));
-  const truth = el('div', { class: 'box truth' }, el('span', { class: 'k' }, 'Source says now'), el('p', {}, f.source_says), el('span', { class: 'src' }, srcs.map(s => `${s.name} · ${s.system} · ${fdate(s.date)}`).join(' — ')));
-  d.append(el('div', { class: 'compare' }, el('div', { class: 'box says' }, el('span', { class: 'k' }, 'Course says'), el('p', {}, f.course_says), el('span', { class: 'src' }, `published ${fdate(c.updated)}`)), truth));
-  if (c.kind === 'video' && (f.id === 'F5' || f.id === 'F6' || f.id === 'V1')) d.append(mockCompare(f));
-  if (st === 'review' && srcs[0].conflict) {
-    const s = srcs[0];
-    d.append(el('div', { class: 'card review' }, el('h4', {}, 'Two sources disagree. Which one is authoritative?'), el('p', {}, f.note),
-      el('div', { class: 'srcpair' }, el('div', { class: 'box truth' }, el('span', { class: 'k' }, s.name), el('p', {}, s.change), el('span', { class: 'src' }, `${s.system} · ${fdate(s.date)}`)), el('div', { class: 'box says' }, el('span', { class: 'k' }, s.conflict.name), el('p', {}, s.conflict.says), el('span', { class: 'src' }, s.conflict.system))),
-      el('div', { class: 'row' }, el('button', { class: 'btn primary', onclick: () => resolveReview(f.id, 'guide') }, `${s.name} is authoritative · approve`), el('button', { class: 'btn', onclick: () => resolveReview(f.id, 'faq') }, `${s.conflict.name} is right · dismiss and flag the guide`))));
+function renderReview() {
+  const r = $('#review'); r.innerHTML = ''; const f = findingById[S.current]; if (!f) return;
+  const seg = segById[f.segment], c = courseById[f.course], srcs = f.sources.map(id => sourceById[id]), st = S.status[f.id];
+  const rv = el('div', { class: 'rv' });
+  rv.append(el('div', { class: 'rv-top' }, el('p', { class: 'rv-where' }, el('b', {}, c.title), ` · ${seg.where} · narrated by ${c.voice.name}`), el('span', { class: 'chip ' + f.severity }, f.severity === 'critical' ? 'Critical' : f.severity === 'serious' ? 'Needs fixing' : 'Minor')));
+  rv.append(el('h1', { class: 'rv-headline' }, f.headline));
+  // what changed
+  const s0 = srcs[0];
+  rv.append(el('div', { class: 'box change' }, el('span', { class: 'k' }, 'What changed'), el('p', {}, srcs.map(s => s.change).join(' ')), el('div', { class: 'src' }, el('span', {}, srcs.map(s => `${s.name} · ${fdate(s.date)}`).join(' — ')), el('button', { class: 'lnk', onclick: () => openSheet('how') }, 'How did it know?'))));
+  if (st === 'review' && s0.conflict) {
+    rv.append(el('div', { class: 'box conflict' }, el('span', { class: 'k' }, 'Two sources disagree'), el('div', { class: 'srcpair' }, el('div', { class: 'one' }, el('span', { class: 'k' }, s0.name), el('p', {}, s0.change), el('span', { class: 'src' }, `${s0.system} · ${fdate(s0.date)}`)), el('div', { class: 'one' }, el('span', { class: 'k' }, s0.conflict.name), el('p', {}, s0.conflict.says), el('span', { class: 'src' }, s0.conflict.system))), el('p', { style: 'font-size:15px;color:var(--ink-2)' }, 'The agents don\'t guess. The proposed fix follows the policy-level document; you decide which source is right.')));
   }
+  if (c.kind === 'video') rv.append(mockCompare(f));
   if (narration(f)) {
-    d.append(el('div', { class: 'dt-section' }, el('span', { class: 'dt-label' }, 'Published narration'), player({ key: seg.id + '_orig', text: seg.script, mask: staleMask(seg.script, takeText(f)), kind: 'stale', label: `${seg.id} as published`, course: c.id, tone: 'stale', tag: el('span', { class: 'pill muted' }, fdate(c.updated)) })));
-    const takeSec = el('div', { class: 'dt-section' }, el('span', { class: 'dt-label' }, S.take[f.id] === 'alt' ? 'Your edited take · re-voiced by WellSaid' : 'Proposed take · rewritten by Continuity, voiced by WellSaid'), diffNode(seg.script, takeText(f)),
-      player({ key: takeKey(f), text: takeText(f), mask: freshMask(seg.script, takeText(f)), kind: 'fresh', label: S.take[f.id] === 'alt' ? 'Edited take' : 'New take', course: c.id, tone: 'fresh', tag: el('span', { class: 'pill good' }, 'same narrator · ' + (clipFor(takeKey(f)) ? clipFor(takeKey(f)).duration.toFixed(1) + ' s' : 'pending')) }),
-      el('div', { class: 'qa' }, el('span', { class: 'chk' }, '✓'), el('span', {}, `Listen QA: prosody natural · loudness matched to ${neighbors(seg)} · 0 pronunciation flags · length ${lenDelta(seg, f)}`)));
-    d.append(takeSec);
-    if (S.editing === f.id) d.append(editor(f));
+    rv.append(player({ key: seg.id + '_orig', text: seg.script, mask: staleMask(seg.script, takeText(f)), kind: 'stale', label: 'In the course today', sub: `published ${fdate(c.updated)}`, course: c.id, tone: 'stale' }));
+    rv.append(player({ key: takeKey(f), text: takeText(f), mask: freshMask(seg.script, takeText(f)), kind: 'fresh', label: S.take[f.id] === 'alt' ? 'Your edited line' : 'The fix', sub: 'same narrator, only this line re-recorded', course: c.id, tone: 'fresh' }));
+    if (S.editing === f.id) rv.append(editor(f));
+  } else {
+    rv.append(el('div', { class: 'box task' }, el('span', { class: 'k' }, 'Needs a person'), el('p', {}, f.note), el('p', { style: 'font-size:16px;color:var(--ink-2)' }, el('b', {}, 'Task: '), f.task)));
   }
-  if (!narration(f)) {
-    d.append(el('div', { class: 'card task' }, el('h4', {}, st === 'task_created' ? 'Task created' : 'This needs a person'), el('p', {}, f.note), el('p', {}, el('b', {}, 'Task: '), f.task),
-      st === 'task_created' ? el('p', {}, el('b', {}, `Assigned to ${ME.name} · due Fri, Sep 18`), ` · ${f.id === 'V1' ? 'the re-voiced narration for F5 and F6 is held in the Kaltura draft until the footage lands' : 'request sent to the CEO\'s office; the narration fix (F8) publishes independently'}`) : null));
+  // outcome / actions
+  if (st === 'publishing') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Publishing…'), el('div', { class: 'progress' }, el('i', { id: 'pub-progress' })), el('p', { id: 'pub-step' }, 'Splicing the new line into the course…')));
+  else if (st === 'published') rv.append(outcome('ok', `Published.`, `${c.title} is now ${S.versions[c.id]} in ${c.publish.target}. Completions kept. ${f.material ? (S.notify[f.id] === 'reassign' ? 'Learners re-assigned.' : S.notify[f.id] === 'notify' ? 'Learners notified.' : '') : ''} Posted to #ld-content-ops.`, true));
+  else if (st === 'handoff') rv.append(outcome('sky', 'Sent to Priya.', 'Storyline keeps its audio inside the project file, so Priya swaps this line and republishes. About two minutes, no re-record. Slack will confirm.', true));
+  else if (st === 'dismissed') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Kept as is.'), el('p', {}, 'Continuity won\'t flag this wording again unless the source changes.'), el('div', { class: 'row' }, el('button', { class: 'btn small', onclick: () => { S.status[f.id] = f.status === 'auto' ? 'open' : f.status; select(f.id); } }, 'Undo'), nextBtn())));
+  else if (st === 'task_created') rv.append(outcome('sky', 'Task created.', `Assigned to you, due Friday, September 18. ${f.id === 'V1' ? 'The re-voiced narration waits in the Kaltura draft until the new footage is in.' : 'The narration fix publishes on its own; the video is a request to the CEO\'s office.'}`, true));
+  else {
+    const act = el('div', { class: 'rv-actions' });
+    if (st === 'open') act.append(el('button', { class: 'btn primary', onclick: () => approve(f.id) }, 'Approve & publish'), el('button', { class: 'btn', onclick: () => { S.editing = S.editing === f.id ? null : f.id; renderReview(); } }, S.editing === f.id ? 'Close editor' : 'Edit the wording'), el('button', { class: 'btn quiet', onclick: () => dismiss(f.id) }, 'Not a problem'));
+    else if (st === 'review') act.append(el('button', { class: 'btn primary', onclick: () => resolveReview(f.id, 'guide') }, `Use the ${s0.name} · approve`), el('button', { class: 'btn', onclick: () => resolveReview(f.id, 'faq') }, `Keep the ${s0.conflict.name} · not a problem`), el('button', { class: 'btn quiet', onclick: () => { S.editing = S.editing === f.id ? null : f.id; renderReview(); } }, 'Edit the wording'));
+    else if (st === 'task') act.append(el('button', { class: 'btn primary', onclick: () => createTask(f.id) }, 'Create a task for me'), el('button', { class: 'btn quiet', onclick: () => step(1) }, 'Skip for now'));
+    rv.append(act);
   }
-  d.append(el('div', { class: 'dt-section' }, el('span', { class: 'dt-label' }, 'Where it goes back'), pubInfo(c)));
-  if (st === 'publishing') d.append(el('div', { class: 'card' }, el('h4', {}, 'Publishing'), el('div', { class: 'progress' }, el('i', { id: 'pub-progress' })), el('p', { id: 'pub-step' }, 'Splicing the new take…')));
-  if (st === 'published') d.append(el('div', { class: 'card ok' }, el('h4', {}, `Published ${S.versions[c.id]} → ${c.publish.target}`), el('pre', { class: 'vnote' }, versionNote(c))));
-  if (st === 'handoff') d.append(el('div', { class: 'card task' }, el('h4', {}, 'Sent to Priya N. (course owner, Storyline)'), el('p', {}, 'The new take, the word diff and a change list are in her queue. Storyline keeps audio inside the project file, so the swap is hers: about two minutes, no re-record. You\'ll see the republish confirmation in Slack.')));
-  if (st === 'dismissed') d.append(el('div', { class: 'card' }, el('h4', {}, 'Marked accurate'), el('p', {}, 'Continuity will treat this wording as correct until the source changes again, and it will not re-flag it tomorrow.')));
-  if (st === 'snoozed') d.append(el('div', { class: 'card' }, el('h4', {}, 'Snoozed until Oct 1'), el('p', {}, 'Nothing is published. The new take stays rendered and ready.')));
-  // decisions
-  const dec = el('div', { class: 'decision' });
-  if (st === 'open') {
-    dec.append(el('button', { class: 'btn primary', onclick: () => approve(f.id) }, 'Approve & publish'), el('button', { class: 'btn', onclick: () => { S.editing = S.editing === f.id ? null : f.id; renderDetail(); } }, S.editing === f.id ? 'Close editor' : 'Edit script'), el('button', { class: 'btn ghost', onclick: () => dismiss(f.id) }, 'Dismiss · still accurate'), el('button', { class: 'btn ghost', onclick: () => snooze(f.id) }, 'Snooze'));
-    if (f.material) { const sel = el('select', { onchange: e => { S.notify[f.id] = e.target.value; } }, el('option', { value: 'notify' }, 'Notify assigned learners'), el('option', { value: 'quiet' }, 'Update quietly'), el('option', { value: 'reassign' }, 'Re-assign for re-completion')); sel.value = S.notify[f.id]; dec.append(el('span', { class: 'spacer' }), el('label', { class: 'notify' }, 'Material change · ', sel)); }
-  } else if (st === 'review') {
-    dec.append(el('button', { class: 'btn', onclick: () => { S.editing = S.editing === f.id ? null : f.id; renderDetail(); } }, S.editing === f.id ? 'Close editor' : 'Edit script'), el('button', { class: 'btn ghost', onclick: () => snooze(f.id) }, 'Snooze'));
-  } else if (st === 'task') {
-    dec.append(el('button', { class: 'btn primary', onclick: () => createTask(f.id) }, 'Create task · assign to me'), el('button', { class: 'btn ghost', onclick: () => snooze(f.id) }, 'Snooze'));
-  } else if (st === 'dismissed' || st === 'snoozed') {
-    dec.append(el('button', { class: 'btn', onclick: () => reopen(f.id) }, 'Reopen'));
-  } else if (st === 'published') {
-    dec.append(el('span', { class: 'qa' }, el('span', { class: 'chk' }, '✓'), `Completions preserved · ${S.notify[f.id] === 'reassign' ? 'learners re-assigned' : S.notify[f.id] === 'notify' && f.material ? 'assigned learners notified' : 'no learner action needed'}`));
-  }
-  if (dec.children.length) d.append(dec);
+  // details
+  const d = el('details', { class: 'more' }, el('summary', {}, 'Details: how it checked, where it goes back'));
+  const kv = el('dl', { class: 'kv' });
+  if (narration(f)) kv.append(el('dt', {}, 'Voice check'), el('dd', {}, `Prosody natural · loudness matched to the neighboring lines · 0 pronunciation flags · length ${lenDelta(seg, f)}`));
+  kv.append(el('dt', {}, 'Confidence'), el('dd', {}, `${Math.round(f.confidence * 100)}% that the course is out of date`), el('dt', {}, 'Goes back to'), el('dd', {}, el('b', {}, c.publish.target), ` · ${c.publish.package} · ${S.versions[c.id] || c.publish.version}`), el('dt', {}, 'How'), el('dd', {}, c.publish.how));
+  if (f.material && narration(f) && st === 'open') { const sel = el('select', { onchange: e => { S.notify[f.id] = e.target.value; } }, el('option', { value: 'notify' }, 'Notify assigned learners'), el('option', { value: 'quiet' }, 'Update quietly'), el('option', { value: 'reassign' }, 'Re-assign for re-completion')); sel.value = S.notify[f.id]; kv.append(el('dt', {}, 'Learners'), el('dd', {}, 'Material change · ', sel)); }
+  if (st === 'published') kv.append(el('dt', {}, 'Version note'), el('dd', {}, el('pre', { class: 'vnote' }, versionNote(c))));
+  d.append(kv); rv.append(d);
+  r.append(rv); r.scrollTop = 0;
 }
-const neighbors = seg => { const c = courseById[seg.course]; const i = c.segments.findIndex(s => s.id === seg.id); return [c.segments[i - 1], c.segments[i + 1]].filter(Boolean).map(s => s.id).join(' and '); };
+function outcome(kind, head, body, withNext) { return el('div', { class: 'outcome' + (kind === 'sky' ? ' sky' : '') }, el('h3', {}, el('span', { class: 'ok' }, kind === 'sky' ? '→ ' : '✓ '), head), el('p', {}, body), el('div', { class: 'row' }, withNext ? nextBtn() : null, el('button', { class: 'btn quiet small', onclick: () => openSheet('slack') }, 'See it in Slack'))); }
+function nextBtn() { const n = nextOpen(); return n ? el('button', { class: 'btn primary', onclick: () => select(n) }, `Next: ${findingById[n].short} →`) : el('button', { class: 'btn primary', onclick: () => showView('courses') }, 'Hear the updated courses →'); }
 const lenDelta = (seg, f) => { const a = clipFor(seg.id + '_orig'), b = clipFor(takeKey(f)); if (!a || !b) return 'preserved'; const d = b.duration - a.duration; return `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} s`; };
 function editor(f) {
-  const seg = segById[f.segment];
-  const ta = el('textarea', { 'aria-label': 'Edit the proposed script' }); ta.value = takeText(f);
-  const chips = el('div', { class: 'chips' }, el('button', { class: 'chip', onclick: () => { ta.value = f.fixed; } }, 'Suggested take'), f.alt ? el('button', { class: 'chip', onclick: () => { ta.value = f.alt.text; } }, f.alt.label) : null, el('button', { class: 'chip', onclick: () => { ta.value = seg.script; } }, 'Published wording'));
-  const revoice = el('button', { class: 'btn primary', onclick: () => {
-    const v = ta.value.trim(); const same = (a, b) => toks(a).map(norm).join(' ') === toks(b).map(norm).join(' ');
-    if (same(v, f.fixed)) { S.take[f.id] = 'fix'; S.editing = null; toast(`Re-voiced in ${courseById[f.course].voice.name}'s voice · 1.8 s`); renderInbox(); }
-    else if (f.alt && same(v, f.alt.text)) { S.take[f.id] = 'alt'; S.editing = null; toast(`Re-voiced in ${courseById[f.course].voice.name}'s voice · 1.9 s · Legal's wording`); renderInbox(); }
-    else toast('Live re-voice needs the WellSaid connection, and this demo runs offline. Try one of the suggested wordings.', 4200);
-  } }, 'Re-voice');
-  return el('div', { class: 'card' }, el('h4', {}, 'Edit the script, then re-voice'), el('div', { class: 'editor' }, ta, chips, el('div', { class: 'row' }, revoice, el('span', { class: 'dt-meta' }, `Renders in ${courseById[f.course].voice.name}'s voice with the course pronunciation library. About two seconds.`))));
+  const seg = segById[f.segment], c = courseById[f.course];
+  const ta = el('textarea', { 'aria-label': 'Edit the line' }); ta.value = takeText(f);
+  const same = (a, b) => toks(a).map(norm).join(' ') === toks(b).map(norm).join(' ');
+  const revoice = el('button', { class: 'btn primary', onclick: () => { const v = ta.value.trim(); if (same(v, f.fixed)) { S.take[f.id] = 'fix'; S.editing = null; toast(`Re-recorded in ${c.voice.name}'s voice · 1.8 s`); renderReview(); } else if (f.alt && same(v, f.alt.text)) { S.take[f.id] = 'alt'; S.editing = null; toast(`Re-recorded in ${c.voice.name}'s voice · 1.9 s`); renderReview(); } else toast('Live re-recording needs the WellSaid connection, and this demo runs offline. Try one of the suggested wordings.', 4500); } }, `Re-record in ${c.voice.name}'s voice`);
+  return el('div', { class: 'box' }, el('span', { class: 'k' }, 'Edit the wording'), el('div', { class: 'editor' }, ta, el('div', { class: 'chips' }, el('button', { class: 'chipbtn', onclick: () => { ta.value = f.fixed; } }, 'Suggested wording'), f.alt ? el('button', { class: 'chipbtn', onclick: () => { ta.value = f.alt.text; } }, f.alt.label) : null, el('button', { class: 'chipbtn', onclick: () => { ta.value = seg.script; } }, 'Original wording')), el('div', { class: 'rv-actions', style: 'padding-top:0' }, revoice, el('span', { class: 'muted', style: 'font-size:14px' }, 'About two seconds, same pronunciation library.'))));
 }
 
 /* ── actions ─────────────────────────────────────────────────────────────── */
-function logToday(who, msg, cls = '') { S.today.push({ t: clockStr(), who, msg, cls }); if (S.view === 'activity') renderToday(); }
-function bumpVersion(c) { if (!S.versions[c.id]) S.versions[c.id] = c.publish.version.split('→')[1].trim(); return S.versions[c.id]; }
+function bump(c) { if (!S.versions[c.id]) S.versions[c.id] = c.publish.version.split('→')[1].trim(); return S.versions[c.id]; }
+function logToday(msg) { S.todayLog.push({ t: clockStr(), msg }); }
 async function approve(id, opts = {}) {
   const f = findingById[id], c = courseById[f.course]; if (!['open', 'review'].includes(S.status[id])) return;
-  S.status[id] = 'publishing'; S.editing = null; renderInbox();
-  const steps = ['Splicing the new take…', 'Regenerating captions and transcript…', c.publish.handoff ? 'Packaging takes and change list for the course owner…' : `Building ${c.publish.package} · new version of the same course…`, c.publish.handoff ? 'Sending to Priya N.…' : `Pushing to ${c.publish.target}…`];
-  for (let i = 0; i < steps.length; i++) { const p = $('#pub-progress'), s = $('#pub-step'); if (p) p.style.width = ((i + 1) / steps.length * 100) + '%'; if (s) s.textContent = steps[i]; await wait(opts.fast ? 180 : 420); }
+  S.status[id] = 'publishing'; S.editing = null; if (!opts.quietUI) { renderQueue(); if (S.current === id) renderReview(); }
+  const steps = ['Splicing the new line into the course…', 'Regenerating captions and transcript…', c.publish.handoff ? 'Packaging the line and a change list for Priya…' : `Building a new version of the same course…`, c.publish.handoff ? 'Sending to Priya…' : `Pushing to ${c.publish.target}…`];
+  for (let i = 0; i < steps.length; i++) { const p = $('#pub-progress'), s = $('#pub-step'); if (p) p.style.width = ((i + 1) / steps.length * 100) + '%'; if (s) s.textContent = steps[i]; await wait(opts.fast ? 160 : 450); }
   tick(1);
-  if (c.publish.handoff) { S.status[id] = 'handoff'; logToday('you', `Approved ${id} (${c.title}) → sent to Priya N. for the Storyline swap`); if (!opts.silent) { slackPost('continuity', `📦 <b>${ME.name}</b> approved <b>${id}</b> in <i>${c.title}</i>. New take + change list sent to <b>Priya N.</b> (Storyline owner).`); schedulePriya(); } }
-  else { const v = bumpVersion(c); S.status[id] = 'published'; logToday('you', `Approved ${id} (${c.title}) → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved <b>${id}</b> · <i>${c.title}</i> republished to <b>${c.publish.target}</b> as ${v} (${c.publish.package}${c.kind === 'video' ? ', same media ID' : ', completions preserved'})${f.material ? S.notify[id] === 'reassign' ? ' · learners re-assigned' : S.notify[id] === 'notify' ? ` · ${c.learners.split(' ·')[0]} learners notified` : '' : ''}.`); }
-  renderInbox(); if (S.view === 'library') renderLibrary();
+  if (c.publish.handoff) { S.status[id] = 'handoff'; logToday(`Approved ${f.short} → sent to Priya N.`); if (!opts.silent) { slackPost('continuity', `📦 <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). New line + change list sent to <b>Priya N.</b>, who owns the Storyline file.`); schedulePriya(); } }
+  else { const v = bump(c); S.status[id] = 'published'; logToday(`Approved ${f.short} → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). Republished to <b>${c.publish.target}</b> as ${v}, completions kept${f.material && S.notify[id] !== 'quiet' ? `, ${c.learners.split(' ·')[0]} learners ${S.notify[id] === 'reassign' ? 're-assigned' : 'notified'}` : ''}.`); }
+  if (!opts.quietUI) { renderQueue(); if (S.current === id) renderReview(); }
 }
 let priyaTimer = 0;
 function schedulePriya() {
   clearTimeout(priyaTimer);
   priyaTimer = setTimeout(async () => {
-    slackPost('priya', 'Got them. Swapping the audio in the Storyline project now, four minutes tops.');
+    slackPost('priya', 'Got it. Swapping the audio in the Storyline project now.');
     await wait(reduced ? 0 : 4200);
-    const c = courseById.C; const v = bumpVersion(c); let n = 0;
+    const c = courseById.C; const v = bump(c); let n = 0;
     C.findings.filter(f => f.course === 'C' && S.status[f.id] === 'handoff').forEach(f => { S.status[f.id] = 'published'; n++; });
     tick(4);
-    slackPost('priya', `Swapped ${n} take${n === 1 ? '' : 's'} and republished <i>${c.title}</i> as <b>${v}</b> in Alder Learn (SCORM 2004, same course ID, completions preserved). No re-record, no timeline edits. ✅`, { react: '🙌 3' });
-    logToday('priya', `Republished ${c.title} ${v} after swapping ${n} take${n === 1 ? '' : 's'}`);
-    renderInbox(); if (S.view === 'library') renderLibrary();
+    slackPost('priya', `Swapped ${n} line${n === 1 ? '' : 's'} and republished <i>${c.title}</i> as <b>${v}</b>. Same course, completions kept. No re-record, no timeline surgery. ✅`, { react: '🙌 3' });
+    logToday(`Priya republished ${c.title} ${v}`);
+    renderQueue(); if (S.view === 'inbox') renderReview(); if (S.view === 'courses') renderCourses();
   }, reduced ? 0 : 3600);
 }
 async function approveAll() {
-  if (S.batch) return; const ids = C.findings.filter(f => S.status[f.id] === 'open').map(f => f.id); if (!ids.length) return;
-  S.batch = true; renderInboxHead(); $('#approve-all').disabled = true;
+  if (S.batch) return; const ids = readyIds(); if (!ids.length) return;
+  S.batch = true; renderQueue();
+  const r = $('#review'); r.innerHTML = '';
+  const list = el('ul', { class: 'worklist' }); const rows = {};
+  ids.forEach(id => { const f = findingById[id], c = courseById[f.course]; const li = el('li', {}, el('span', { class: 'ck' }), el('span', {}, el('b', {}, f.short), ` · ${c.title}`), el('span', { class: 'st' }, 'queued')); rows[id] = li; list.append(li); });
+  r.append(el('div', { class: 'rv summary' }, el('h1', { class: 'rv-headline' }, `Approving ${ids.length} fixes.`), el('p', { class: 'muted', style: 'font-size:16px' }, 'Each line is spliced in, captions regenerate, and the course goes back to where it lives as a new version.'), list));
   const touched = {};
-  for (const id of ids) { S.selected = id; await approve(id, { silent: true, fast: true }); touched[findingById[id].course] = (touched[findingById[id].course] || 0) + 1; await wait(120); }
-  S.batch = false; tick(1);
-  const lines = Object.entries(touched).map(([cid, n]) => { const c = courseById[cid]; return c.publish.handoff ? `<i>${c.title}</i> → ${n} take${n === 1 ? '' : 's'} sent to Priya N. (Storyline)` : `<i>${c.title}</i> → ${c.publish.target} ${S.versions[cid]} (${n} take${n === 1 ? '' : 's'})`; });
-  slackPost('continuity', `✅ <b>${ME.name}</b> approved <b>${ids.length} new takes</b>. Republished:`, { list: lines.map(l => ({ sev: 'done', html: l })) });
+  for (const id of ids) {
+    const f = findingById[id], c = courseById[f.course]; rows[id].querySelector('.ck').classList.add('busy'); rows[id].querySelector('.st').textContent = 'publishing…';
+    await approve(id, { silent: true, fast: true, quietUI: true });
+    rows[id].querySelector('.ck').classList.remove('busy'); rows[id].querySelector('.ck').classList.add('ok'); rows[id].querySelector('.ck').textContent = '✓'; rows[id].querySelector('.st').textContent = c.publish.handoff ? 'with Priya' : `published ${S.versions[c.id]}`; rows[id].querySelector('.st').classList.add('ok');
+    touched[c.id] = (touched[c.id] || 0) + 1; renderQueue(); await wait(120);
+  }
+  S.batch = false; S.batchDone = true; tick(1);
+  const lines = Object.entries(touched).map(([cid, n]) => { const c = courseById[cid]; return c.publish.handoff ? `<i>${c.title}</i> → ${n} line${n === 1 ? '' : 's'} to Priya N. (Storyline)` : `<i>${c.title}</i> → ${c.publish.target} ${S.versions[cid]} (${n} line${n === 1 ? '' : 's'})`; });
+  slackPost('continuity', `✅ <b>${ME.name}</b> approved <b>${ids.length} fixes</b>. Republished:`, { list: lines.map(l => ({ sev: 'done', html: l })) });
   if (touched.C) schedulePriya();
-  const rev = C.findings.filter(f => S.status[f.id] === 'review'); if (rev.length) { S.selected = rev[0].id; slackPost('continuity', `Still waiting on you: <b>${rev.length}</b> item${rev.length === 1 ? '' : 's'} that need${rev.length === 1 ? 's' : ''} a judgment call, and ${C.findings.filter(f => S.status[f.id] === 'task').length} task${C.findings.filter(f => S.status[f.id] === 'task').length === 1 ? '' : 's'}.`, { buttons: [{ label: 'Open', onclick: () => selectFinding(rev[0].id) }] }); }
-  renderInbox();
+  renderQueue(); renderSummary(ids.length, Object.keys(touched).length);
 }
-$('#approve-all').addEventListener('click', approveAll);
-function dismiss(id, why) { const f = findingById[id]; S.status[id] = 'dismissed'; tick(1); logToday('you', `Marked ${id} accurate${why ? ' · ' + why : ''}`); slackPost('continuity', `🟢 <b>${ME.name}</b> marked <b>${id}</b> as still accurate${why ? ` (${why})` : ''}. I'll accept this wording until the source changes again.`); renderInbox(); }
-function snooze(id) { S.status[id] = 'snoozed'; tick(1); logToday('you', `Snoozed ${id} until Oct 1`); renderInbox(); }
-function reopen(id) { const f = findingById[id]; S.status[id] = f.status === 'auto' ? 'open' : f.status; renderInbox(); }
-function createTask(id) { const f = findingById[id]; S.status[id] = 'task_created'; tick(1); logToday('you', `Created task for ${id}: ${f.task.split('.')[0]}`); slackPost('continuity', `📋 Task created for <b>${ME.name}</b> · due Fri Sep 18 · <i>${courseById[f.course].title}</i>: ${f.task.split('.')[0]}.`); renderInbox(); }
+function renderSummary(nFixes, nCourses) {
+  const r = $('#review'); r.innerHTML = '';
+  const left = openIds();
+  const still = el('div', { class: 'still' });
+  left.forEach(id => { const f = findingById[id]; still.append(el('div', { class: 'row' }, el('span', {}, el('b', {}, f.short), el('span', { style: 'margin-left:10px' }, S.status[id] === 'review' ? 'two sources disagree' : 'needs a person')), el('button', { class: 'btn small', onclick: () => select(id) }, 'Open'))); });
+  const approvedTotal = C.findings.filter(f => narration(f) && ['published', 'handoff', 'publishing'].includes(S.status[f.id])).length;
+  r.append(el('div', { class: 'rv summary' },
+    el('h1', { class: 'rv-headline' }, `Done. ${approvedTotal} lines re-recorded this morning, ${nCourses} courses going back out.`),
+    el('div', { class: 'stats' }, el('div', { class: 'stat good' }, el('span', { class: 'v num' }, approvedTotal), el('span', { class: 'k' }, 'fixes approved, same five narrators')), el('div', { class: 'stat good' }, el('span', { class: 'v num' }, nCourses), el('span', { class: 'k' }, 'courses republished as new versions, completions kept')), el('div', { class: 'stat' }, el('span', { class: 'v num' }, '0'), el('span', { class: 'k' }, 'studio sessions, re-records or timeline edits'))),
+    left.length ? el('div', {}, el('p', { class: 'eyebrow', style: 'margin-bottom:10px' }, 'Still yours'), still) : null,
+    el('div', { class: 'rv-actions' }, left.length ? el('button', { class: 'btn primary', onclick: () => select(left[0]) }, `Next: ${findingById[left[0]].short} →`) : null, el('button', { class: 'btn', onclick: () => showView('courses') }, 'Hear the updated courses'), el('button', { class: 'btn quiet', onclick: () => openSheet('slack') }, 'See it in Slack'))));
+}
+function dismiss(id, why) { const f = findingById[id]; S.status[id] = 'dismissed'; tick(1); logToday(`Kept ${f.short} as is${why ? ' · ' + why : ''}`); slackPost('continuity', `🟢 <b>${ME.name}</b> kept the current wording for <i>${courseById[f.course].title}</i> (${f.short})${why ? ` · ${why}` : ''}. I'll leave it alone until the source changes again.`); renderQueue(); renderReview(); }
+function createTask(id) { const f = findingById[id]; S.status[id] = 'task_created'; tick(1); logToday(`Created task: ${f.task.split('.')[0]}`); slackPost('continuity', `📋 Task created for <b>${ME.name}</b>, due Fri Sep 18 · <i>${courseById[f.course].title}</i>: ${f.task.split('.')[0]}.`); renderQueue(); renderReview(); }
 async function resolveReview(id, choice) {
-  const f = findingById[id], s = sourcesOf(f)[0];
-  if (choice === 'guide') {
-    S.status[id] = 'open'; await approve(id, { silent: true }); tick(0);
-    slackPost('continuity', `✅ <b>${ME.name}</b> resolved the conflict on <b>${id}</b>: <b>${s.name}</b> outranks <b>${s.conflict.name}</b> for leave policy. New take sent to Priya N. I've flagged the FAQ to the People team.`);
-    logToday('you', `Resolved ${id}: ${s.name} authoritative over ${s.conflict.name}`);
-    setTimeout(() => slackPost('sam', 'Good catch. The FAQ page is mine, fixing it this morning.', { react: '👍 2' }), reduced ? 0 : 5200);
-  } else { dismiss(id, `${s.conflict.name} kept; ${s.name} flagged for correction`); }
-  renderInbox();
+  const f = findingById[id], s = sourceById[f.sources[0]];
+  if (choice === 'guide') { S.status[id] = 'open'; await approve(id, { silent: true }); slackPost('continuity', `✅ <b>${ME.name}</b> settled the conflict on <i>${courseById[f.course].title}</i> (${f.short}): <b>${s.name}</b> outranks <b>${s.conflict.name}</b>. Fix sent to Priya N. I've flagged the FAQ to the People team.`); logToday(`Settled ${f.short}: ${s.name} is authoritative`); setTimeout(() => slackPost('sam', 'Good catch. The FAQ page is mine, fixing it this morning.', { react: '👍 2' }), reduced ? 0 : 5200); }
+  else dismiss(id, `${s.conflict.name} kept, ${s.name} flagged for correction`);
+  renderQueue(); renderReview();
 }
 
-/* ── Slack ───────────────────────────────────────────────────────────────── */
+/* ── Slack sheet ─────────────────────────────────────────────────────────── */
 const msgs = $('#sl-msgs');
+let webhook = ''; try { webhook = localStorage.getItem('suc-slack-webhook') || ''; } catch (_) {}
+const mrkdwn = html => html.replace(/<br\s*\/?>/gi, '\n').replace(/<b>(.*?)<\/b>/gi, '*$1*').replace(/<i>(.*?)<\/i>/gi, '_$1_').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
+function postReal(html, opts = {}) {
+  if (!webhook) return;
+  let text = mrkdwn(html); if (opts.list) text += '\n' + opts.list.map(it => '• ' + mrkdwn(it.html)).join('\n');
+  try { fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ text }) }).catch(() => {}); } catch (_) {}
+}
+function renderConnect() {
+  const box = $('#sl-connect'); box.innerHTML = '';
+  if (webhook) { box.append(el('div', { class: 'row' }, el('span', { class: 'live' }, '● Live'), el('span', {}, 'every post here also goes to your real Slack channel'), el('button', { class: 'sl-btn', onclick: () => { webhook = ''; try { localStorage.removeItem('suc-slack-webhook'); } catch (_) {} renderConnect(); } }, 'Disconnect'))); return; }
+  const inp = el('input', { type: 'url', placeholder: 'Paste a Slack incoming-webhook URL to post for real', 'aria-label': 'Slack webhook URL' });
+  box.append(el('div', { class: 'row' }, inp, el('button', { class: 'sl-btn primary', onclick: () => { const v = inp.value.trim(); if (!/^https:\/\/hooks\.slack\.com\//.test(v)) { toast('That does not look like a hooks.slack.com webhook URL.'); return; } webhook = v; try { localStorage.setItem('suc-slack-webhook', v); } catch (_) {} renderConnect(); postReal(`:wave: Drift Inbox connected. Approvals made in the demo will post here.`); toast('Connected. Approvals will post to your Slack channel.'); } }, 'Connect')), el('span', {}, 'Simulated channel below. Connect a webhook and the same messages post to a real channel during the demo.'));
+}
+renderConnect();
 function slackPost(who, html, opts = {}) {
   const p = P[who] || P.continuity;
   const body = el('div', { class: 'sl-body' }, el('div', { class: 'sl-name' }, el('b', {}, p.name), p.app ? el('span', { class: 'app-tag' }, 'APP') : null, el('span', { class: 'sl-time' }, opts.time || clockStr())), el('div', { class: 'sl-text', html }));
   if (opts.list) { const ul = el('ul', { class: 'sl-list' }); opts.list.forEach(it => ul.append(el('li', {}, el('span', { class: 'sev ' + it.sev }), el('span', { html: it.html })))); body.append(ul); }
-  if (opts.buttons) { const a = el('div', { class: 'sl-actions' }); opts.buttons.forEach(b => a.append(el('button', { class: 'sl-btn' + (b.primary ? ' primary' : ''), onclick: e => { b.onclick(e.currentTarget); } }, b.label))); body.append(a); }
+  if (opts.buttons) { const a = el('div', { class: 'sl-actions' }); opts.buttons.forEach(b => a.append(el('button', { class: 'sl-btn' + (b.primary ? ' primary' : ''), onclick: b.onclick }, b.label))); body.append(a); }
   if (opts.react) body.append(el('span', { class: 'sl-react' }, opts.react));
-  const m = el('div', { class: 'sl-msg' + (opts.dim ? ' dim' : '') }, el('span', { class: 'avatar ' + p.color }, p.initials), body);
-  msgs.append(m); msgs.scrollTop = msgs.scrollHeight; return m;
+  const m = el('div', { class: 'sl-msg' }, el('span', { class: 'avatar ' + p.color }, p.initials), body);
+  msgs.append(m); msgs.scrollTop = msgs.scrollHeight; if (!opts.time) { postReal(`*${p.name}:* ` + html, opts); if (sheets.slack.hidden) toast(webhook ? 'Posted to Slack' : 'Posted to #ld-content-ops', 1800); } return m;
 }
 function seedSlack() {
-  msgs.innerHTML = ''; msgs.append(el('div', { class: 'sl-day' }, 'Today'));
-  const sc = C.scan;
-  slackPost('continuity', `Nightly scan started · ${C.library.courses} courses · ${sc.sources} sources of truth. First full scan since the library was connected yesterday.`, { time: sc.started });
-  const mine = C.findings.length, ready = C.findings.filter(f => f.status === 'auto').length, rev = C.findings.filter(f => f.status === 'review').length, tasks = C.findings.filter(f => f.status === 'task').length;
-  slackPost('continuity', `Scan complete at ${sc.finished}. <b>${nf.format(sc.claims)} claims</b> checked against ${sc.sources} sources · <b>${sc.findings} findings in ${sc.courses_affected} courses</b> library-wide (${sc.critical} critical).<br>In your ${C.courses.length} courses, <b>${ME.name.split(' ')[0]}</b>: <b>${mine} findings</b> · ${ready} new takes ready to approve · ${rev} needs your judgment · ${tasks} tasks a voice can't fix.`, { time: sc.finished,
-    list: C.courses.map(c => ({ sev: (byCourse[c.id] || []).some(f => f.severity === 'critical') ? 'critical' : 'serious', html: `<i>${c.title}</i> · ${(byCourse[c.id] || []).length} finding${(byCourse[c.id] || []).length === 1 ? '' : 's'} · ${c.voice.name}` })),
-    buttons: [{ label: 'Open inbox', primary: true, onclick: () => { showView('inbox'); S.filter = 'all'; renderInbox(); } }, { label: 'Approve all ready', onclick: () => { showView('inbox'); approveAll(); } }] });
-  slackPost('wellsaid', `Rendered <b>${ready} new takes</b> in the original narrators' voices: ${[...new Set(C.courses.map(c => c.voice.name))].join(', ')}. Listen-back QA: ${ready} passed, 0 flagged. Only the changed segments were re-rendered.`, { time: '2:07 AM' });
+  msgs.innerHTML = ''; msgs.append(el('div', { class: 'sl-day' }, 'Today')); $('#sl-members').textContent = ` · ${C.slack.members} members`;
   const crit = C.findings.find(f => f.severity === 'critical');
-  slackPost('continuity', `🔴 <b>Critical</b> · <i>${courseById[crit.course].title}</i> → ${crit.source_says.split('.')[0]}. The course still gives the old number to ${courseById[crit.course].learners.split(' ·')[0]} people. New take is ready.`, { time: '2:07 AM', buttons: [{ label: '▶ Listen', onclick: () => { selectFinding(crit.id); const pl = $('#idetail .player.fresh'); pl && pl.play(); } }, { label: 'Approve & publish', primary: true, onclick: btn => { if (S.status[crit.id] === 'open') { selectFinding(crit.id); approve(crit.id); } else toast('Already handled.'); } }, { label: 'Open', onclick: () => selectFinding(crit.id) }] });
-  const rv = C.findings.find(f => f.status === 'review'); const rs = sourceById[rv.sources[0]];
-  slackPost('continuity', `🟡 <b>Needs your judgment</b> · <i>${courseById[rv.course].title}</i>, ${rv.segment} → <b>${rs.name}</b> says 16 weeks of parental leave; <b>${rs.conflict.name}</b> still says 12. Which source is authoritative?`, { time: '2:08 AM', buttons: [{ label: 'Open', onclick: () => selectFinding(rv.id) }] });
-  const ts = C.findings.filter(f => f.status === 'task');
-  slackPost('continuity', `📋 <b>${ts.length} tasks</b> a voice can't fix:`, { time: '2:08 AM', list: ts.map(t => ({ sev: 'serious', html: `<i>${courseById[t.course].title}</i> · ${t.claim}` })), buttons: [{ label: 'Open tasks', onclick: () => { showView('inbox'); S.filter = 'tasks'; S.selected = ts[0].id; renderInbox(); } }] });
+  slackPost('continuity', `${C.morning.greeting}<br><b>${C.morning.summary}</b>`, { time: C.scan.finished, list: C.courses.map(c => ({ sev: byCourse[c.id].some(f => f.severity === 'critical') ? 'critical' : 'serious', html: `<i>${c.title}</i> · ${byCourse[c.id].length} item${byCourse[c.id].length === 1 ? '' : 's'}` })), buttons: [{ label: 'Open the inbox', primary: true, onclick: () => { closeSheets(); select(crit.id); } }] });
+  slackPost('wellsaid', C.morning.wellsaid, { time: '2:07 AM' });
+  slackPost('continuity', `🔴 <b>Critical</b> · <i>${courseById[crit.course].title}</i>: ${crit.headline} The fix is ready in Patrick K.'s voice.`, { time: '2:07 AM', buttons: [{ label: 'Review', primary: true, onclick: () => { closeSheets(); select(crit.id); } }] });
 }
 seedSlack();
 
-/* ── library ─────────────────────────────────────────────────────────────── */
-function renderLibrary() {
-  const t = $('#ltable'); t.innerHTML = '';
-  t.append(el('div', { class: 'lhead' }, el('span', {}, 'Course'), el('span', {}, 'Format'), el('span', { class: 'c-owner' }, 'Owner'), el('span', {}, 'Learners'), el('span', {}, 'Findings'), el('span', { style: 'text-align:right' }, 'Health')));
-  t.append(el('div', { class: 'lsep' }, `Your courses (${C.courses.length})`));
+/* ── How it works sheet ──────────────────────────────────────────────────── */
+(() => {
+  const h = $('#how-body');
+  const OWN = { ci: 'Continuity Intelligence', ws: 'WellSaid', flow: 'Workflow' };
+  h.append(el('div', {}, el('h3', {}, 'Every night, six agents. Every morning, one human.'), el('p', { style: 'margin-top:6px' }, 'Continuity Intelligence finds what drifted and drafts the fix. WellSaid re-records only that line in the original narrator\'s voice. Nothing publishes until a person approves.')));
+  const steps = el('div', { class: 'steps' });
+  C.agents.forEach((a, i) => steps.append(el('div', { class: 'step' }, el('span', { class: 'n ' + a.owner }, i + 1), el('div', {}, el('b', {}, `${a.name} · ${OWN[a.owner]}`), el('p', {}, a.role)))));
+  steps.append(el('div', { class: 'step' }, el('span', { class: 'n you' }, '✓'), el('div', {}, el('b', {}, 'You decide'), el('p', {}, 'Approve, edit the wording, or keep it as is. Two sources disagree? It stops and asks. A screen recording or a video of a person? It opens a task instead.'))));
+  h.append(steps);
+  h.append(el('div', {}, el('h3', {}, `Last night at ${C.company.name}`), el('ol', { class: 'log', style: 'margin-top:10px' }, ...C.scan.log.map(([t, who, msg, cls]) => el('li', {}, el('span', { class: 't' }, t), el('span', { class: cls || '' }, msg))))));
+  h.append(el('div', {}, el('h3', {}, 'Sources being watched'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...[...C.sources].sort((a, b) => b.date.localeCompare(a.date)).map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.change)), el('span', { class: 'when' }, `moved ${fshort(s.date)}`))), ...C.unchanged_sources.map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.system)), el('span', { class: 'when ok' }, 'unchanged'))))));
+  h.append(el('div', {}, el('h3', {}, 'Where the fix goes back'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...C.courses.map(c => el('li', {}, el('span', {}, el('b', {}, `${c.title} · ${c.format}`), el('span', {}, c.publish.how)), el('span', { class: 'when ok' }, c.publish.package))))));
+  h.append(el('p', { class: 'muted', style: 'font-size:13px' }, 'SCORM is the container, not the fix: the fix goes into the source and the package is the new version the LMS receives.'));
+})();
+
+/* ── courses view ────────────────────────────────────────────────────────── */
+function renderCourses() {
+  const g = $('#courses-grid'); g.innerHTML = '';
   C.courses.forEach(c => {
-    const fs = byCourse[c.id] || [], done = fs.filter(f => RESOLVED.has(S.status[f.id])).length, sc = courseScore(c);
-    t.append(el('button', { class: 'lrow' + (S.libSel === c.id ? ' active' : ''), onclick: () => { S.libSel = c.id; renderLibrary(); } },
-      el('span', { class: 't' }, el('b', {}, c.title), el('span', {}, `${c.voice.name} · updated ${fdate(c.updated)}${S.versions[c.id] ? ' · republished ' + S.versions[c.id] + ' today' : ''}`)), el('span', { class: 'c' }, c.format.split(' ·')[0]), el('span', { class: 'c c-owner' }, c.owner.split(' ')[0]), el('span', { class: 'c' }, c.learners.split(' ·')[0]),
-      el('span', { class: 'findings' }, fs.length - done ? el('span', { class: 'pill ' + (fs.some(f => f.severity === 'critical' && !RESOLVED.has(S.status[f.id])) ? 'critical' : 'serious') }, `${fs.length - done} open`) : null, done ? el('span', { class: 'pill good' }, `${done} done`) : null),
-      el('span', { class: 'hs' }, el('b', { class: 'num' }, sc), el('span', { class: 'hbar' }, el('i', { class: sc >= 90 ? 'good' : '', style: `width:${sc}%` })))));
+    const sc = courseScore(c), fs = byCourse[c.id], done = fs.filter(f => RESOLVED.has(S.status[f.id])).length;
+    g.append(el('button', { class: 'ccard' + (S.course === c.id ? ' active' : ''), onclick: () => { S.course = c.id; renderCourses(); } }, el('h3', {}, c.title), el('span', { class: 'm' }, `${c.format} · ${c.voice.name} · ${c.learners}`), strip(c), el('div', { class: 'st' }, el('span', {}, done === fs.length ? `All ${fs.length} items handled${S.versions[c.id] ? ' · ' + S.versions[c.id] : ''}` : `${fs.length - done} of ${fs.length} items open`), el('span', { class: 'score num' + (sc >= 90 ? ' good' : '') }, sc))));
   });
-  t.append(el('div', { class: 'lsep' }, `Other owners · with findings (${C.library.others.length})`));
-  C.library.others.forEach(o => t.append(el('button', { class: 'lrow other', onclick: () => toast(`${o.title} belongs to ${o.owner}. Their findings are in their inbox; the offline demo carries audio only for your five courses.`, 4200) },
-    el('span', { class: 't' }, el('b', {}, o.title), el('span', {}, o.note)), el('span', { class: 'c' }, o.format), el('span', { class: 'c c-owner' }, o.owner.split(' ')[0]), el('span', { class: 'c' }, o.learners), el('span', { class: 'findings' }, el('span', { class: 'pill ' + (o.critical ? 'critical' : 'serious') }, `${o.findings} open`)), el('span', { class: 'hs' }, el('b', { class: 'num' }, 60 + (o.findings * 3) % 20), el('span', { class: 'hbar' }, el('i', { style: `width:${60 + (o.findings * 3) % 20}%` }))))));
-  t.append(el('div', { class: 'lsep' }, `${C.library.courses - C.courses.length - C.library.others.length} more courses · verified overnight, nothing to do`));
-  $('#lib-legend').innerHTML = ''; ['verified', 'drift', 'critical', 'fixed'].forEach(k => $('#lib-legend').append(el('span', {}, el('i', { class: k }), { verified: 'Verified', drift: 'Drift', critical: 'Critical', fixed: 'New take live' }[k])));
-  renderCourse(courseById[S.libSel]);
+  renderCourseDetail(courseById[S.course]);
 }
-function renderCourse(c) {
-  const d = $('#ldetail'); d.innerHTML = ''; if (!c) return;
-  const sc = courseScore(c), R = 40, circ = 2 * Math.PI * R;
-  d.append(el('div', { class: 'dt-head' }, el('div', { class: 'row' }, el('span', { class: 'pill' }, c.format), el('span', { class: 'pill' }, c.voice.name + ' · ' + c.voice.style), S.versions[c.id] ? el('span', { class: 'pill good' }, 'republished ' + S.versions[c.id]) : null), el('h2', { class: 'dt-title' }, c.title), el('p', { class: 'dt-meta' }, `${c.learners} · ${c.duration} · owner ${c.owner} · last published ${fdate(c.updated)}`)));
-  d.append(el('div', { class: 'score' }, el('div', { class: 'ring' + (sc >= 90 ? ' good' : '') }, el('div', { html: `<svg viewBox="0 0 96 96" aria-hidden="true"><circle class="track" cx="48" cy="48" r="${R}"/><circle class="val" cx="48" cy="48" r="${R}" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${(circ * (1 - sc / 100)).toFixed(1)}"/></svg>` }), el('span', { class: 'n num' }, sc)), el('div', {}, el('span', { class: 'dt-label' }, 'Continuity score'), el('p', { style: 'margin-top:6px;font-size:14px;color:var(--ink-2)' }, `${sc} of 100. Every checkable claim in this course, verified against a current source. ${(byCourse[c.id] || []).filter(f => !RESOLVED.has(S.status[f.id])).length || 'No'} open finding${(byCourse[c.id] || []).filter(f => !RESOLVED.has(S.status[f.id])).length === 1 ? '' : 's'}.`))));
-  d.append(el('div', { class: 'dt-section' }, el('span', { class: 'dt-label' }, 'Narration track'), strip(c), el('div', { class: 'legend' }, ...['verified', 'drift', 'critical', 'fixed'].map(k => el('span', {}, el('i', { class: k }), { verified: 'Verified', drift: 'Drift', critical: 'Critical', fixed: 'New take live' }[k])))));
+function renderCourseDetail(c) {
+  const d = $('#course-detail'); d.innerHTML = '';
   const list = el('div', { class: 'seglist' }), np = el('div', { class: 'nowplaying', hidden: true }); const rows = {};
   c.segments.forEach(s => {
     const fs = findingsBySeg[s.id] || []; const pub = fs.find(f => S.status[f.id] === 'published'); const key = pub ? takeKey(pub) : s.id + '_orig'; const text = pub ? takeText(pub) : s.script;
     const open = fs.filter(f => !['published', 'dismissed'].includes(S.status[f.id]));
-    const tag = pub ? el('span', { class: 'pill good' }, 'new take') : open.length ? el('span', { class: 'pill ' + (open.some(f => f.severity === 'critical') ? 'critical' : 'serious') }, S.status[open[0].id] === 'handoff' ? 'with Priya N.' : 'drift · in your inbox') : s.verified ? el('span', { class: 'pill muted', title: s.verified }, 'checked · still true') : el('span', { class: 'pill muted' }, 'unchanged');
-    const b = el('button', { class: 'pbtn sm' + (pub ? ' mint' : ''), 'aria-label': 'Play ' + s.id, disabled: !clipFor(key), onclick: () => playRow(s.id) }, el('span', { class: 'ic' }));
-    const row = el('div', { class: 'segrow', 'data-seg': s.id }, el('span', { class: 'fid' }, s.id), b, el('span', { class: 't' }, s.title), tag);
+    const tag = pub ? el('span', { class: 'chip good' }, 'new line') : open.length ? el('span', { class: 'chip ' + (open.some(f => f.severity === 'critical') ? 'critical' : 'serious') }, S.status[open[0].id] === 'handoff' ? 'with Priya' : 'out of date') : el('span', { class: 'chip' }, 'unchanged');
+    const b = el('button', { class: 'pbtn sm' + (pub ? ' mint' : ''), 'aria-label': 'Play ' + s.where, disabled: !clipFor(key), onclick: () => playRow(s.id) }, el('span', { class: 'ic' }));
+    const row = el('div', { class: 'segrow', 'data-seg': s.id }, b, el('span', { class: 't' }, s.where.split(' · ')[1] || s.where, el('span', {}, s.where.split(' · ')[0])), tag);
     rows[s.id] = { row, key, text, mask: pub ? freshMask(s.script, takeText(pub)) : (fs[0] ? staleMask(s.script, fs[0].fixed) : []), kind: pub ? 'fresh' : 'stale' }; list.append(row);
   });
-  function playRow(id) { const r = rows[id]; $$('.segrow', list).forEach(x => x.classList.toggle('active', x.dataset.seg === id)); np.hidden = false; np.innerHTML = ''; const sc2 = scriptNode(r.text, r.mask, r.kind); np.append(el('div', { class: 'np-head' }, el('span', {}, el('b', {}, `${id} · ${segById[id].title}`)), el('span', {}, `${c.voice.name} · ${r.kind === 'fresh' ? 'new take' : 'as published'}`)), sc2); const segEl = $(`#ldetail .seg[data-seg="${id}"]`); segEl && segEl.classList.add('playing'); return playClip(r.key, { onWord: i => highlightWord(sc2, i), onEnd: () => { segEl && segEl.classList.remove('playing'); highlightWord(sc2, -1); } }); }
+  const st = strip(c);
+  function playRow(id) { const r = rows[id]; $$('.segrow', list).forEach(x => x.classList.toggle('active', x.dataset.seg === id)); np.hidden = false; np.innerHTML = ''; const sc = scriptNode(r.text, r.mask, r.kind); np.append(el('div', { class: 'np-head' }, el('span', {}, el('b', {}, segById[id].where)), el('span', {}, `${c.voice.name} · ${r.kind === 'fresh' ? 'new line' : 'as published'}`)), sc); const segEl = $(`.seg[data-seg="${id}"]`, st); segEl && segEl.classList.add('playing'); return playClip(r.key, { onWord: i => highlightWord(sc, i), onEnd: () => { segEl && segEl.classList.remove('playing'); highlightWord(sc, -1); } }); }
   let all = false; const allVoiced = c.segments.every(s => clipFor(rows[s.id].key));
-  const allBtn = el('button', { class: 'btn primary', disabled: !allVoiced, title: allVoiced ? '' : 'Only the flagged segments of this course carry audio in the offline demo', onclick: async () => { if (all) { all = false; stopAll(); allBtn.textContent = 'Play the whole module'; return; } all = true; allBtn.textContent = 'Stop'; for (const s of c.segments) { if (!all) break; const ok = await playRow(s.id); if (!ok) break; await wait(300); } all = false; allBtn.textContent = 'Play the whole module'; $$('.segrow', list).forEach(x => x.classList.remove('active')); } }, 'Play the whole module');
-  d.append(el('div', { class: 'dt-section' }, el('div', { class: 'row', style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'dt-meta' }, `${c.segments.filter(s => (findingsBySeg[s.id] || []).some(f => S.status[f.id] === 'published')).length} of ${c.segments.length} segments are new takes; the rest are untouched`)), list, np));
-  d.append(el('div', { class: 'dt-section' }, el('span', { class: 'dt-label' }, 'Where it goes back'), pubInfo(c)));
-  if (S.versions[c.id]) d.append(el('div', { class: 'card ok' }, el('h4', {}, `Version note · ${S.versions[c.id]}`), el('pre', { class: 'vnote' }, versionNote(c))));
+  const allBtn = el('button', { class: 'btn primary', disabled: !allVoiced, title: allVoiced ? '' : 'Only the flagged lines of this course carry audio in the offline demo', onclick: async () => { if (all) { all = false; stopAll(); allBtn.textContent = 'Play the whole course'; return; } all = true; allBtn.textContent = 'Stop'; for (const s of c.segments) { if (!all) break; const ok = await playRow(s.id); if (!ok) break; await wait(300); } all = false; allBtn.textContent = 'Play the whole course'; $$('.segrow', list).forEach(x => x.classList.remove('active')); } }, 'Play the whole course');
+  const newCount = c.segments.filter(s => (findingsBySeg[s.id] || []).some(f => S.status[f.id] === 'published')).length;
+  d.append(el('div', { class: 'cd-head' }, el('div', {}, el('h2', {}, c.title), el('p', { class: 'm' }, `${c.format} · narrated by ${c.voice.name} · ${c.learners} · ${c.segments.length} narration lines`)), el('div', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'muted', style: 'font-size:14px' }, `${newCount} new line${newCount === 1 ? '' : 's'}, ${c.segments.length - newCount} untouched`))),
+    st, el('div', { class: 'legend' }, el('span', {}, el('i', { class: 'fixed' }), 'new line'), el('span', {}, el('i', { class: 'verified' }), 'checked, still true'), el('span', {}, el('i', { class: 'drift' }), 'out of date'), el('span', {}, el('i', { class: 'critical' }), 'critical')), list, np,
+    S.versions[c.id] ? el('details', { class: 'more' }, el('summary', {}, `Version note · ${S.versions[c.id]}`), el('pre', { class: 'vnote' }, versionNote(c))) : null);
 }
-
-/* ── sources ─────────────────────────────────────────────────────────────── */
-function renderSources() {
-  const t = $('#stable'); t.innerHTML = '';
-  t.append(el('div', { class: 'shead' }, el('span', {}, 'Source'), el('span', {}, 'What changed'), el('span', {}, 'Changed'), el('span', {}, 'Depends'), el('span', {}, 'Findings')));
-  [...C.sources].sort((a, b) => b.date.localeCompare(a.date)).forEach(s => t.append(el('div', { class: 'srow' + (s.conflict ? ' conflict' : '') },
-    el('span', { class: 't' }, el('b', {}, s.name), el('span', {}, s.system)), el('span', { class: 'ch' }, s.change, s.was ? el('span', { class: 'was' }, 'was: ' + s.was) : null, s.conflict ? el('span', { class: 'was' }, `conflicts with ${s.conflict.name}: “${s.conflict.says}”`) : null),
-    el('span', { class: 'st moved' }, fshort(s.date)), el('span', { class: 'dep num' }, `${s.dependents} seg.`), el('span', { class: 'fl' }, ...s.findings.map(id => el('button', { onclick: () => selectFinding(id), title: findingById[id].claim }, id))))));
-  C.unchanged_sources.forEach(s => t.append(el('div', { class: 'srow' }, el('span', { class: 't' }, el('b', {}, s.name), el('span', {}, s.system)), el('span', { class: 'ch' }, 'No change since the courses that cite it were published.'), el('span', { class: 'st ok' }, 'unchanged'), el('span', { class: 'dep num' }, `${s.dependents} seg.`), el('span', { class: 'fl' }))));
-}
-$('#add-source').addEventListener('click', () => toast('Connect a SharePoint library, a release-notes feed, a Workday report, a web page or a PDF. Continuity watches it from the next scan.', 4500));
-
-/* ── activity ────────────────────────────────────────────────────────────── */
-const tiles = []; let activityBuilt = false;
-const mulberry = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-function buildActivity() {
-  if (activityBuilt) return; activityBuilt = true;
-  const n = C.library.courses, rnd = mulberry(20260915), drift = new Set(), crit = new Set();
-  while (drift.size < C.scan.courses_affected) drift.add(Math.floor(rnd() * n)); const d = [...drift]; while (crit.size < C.scan.critical) crit.add(d[Math.floor(rnd() * d.length)]);
-  const host = $('#tiles'); for (let i = 0; i < n; i++) { const t = el('div', { class: 'tile' }); t.dataset.fate = crit.has(i) ? 'critical' : drift.has(i) ? 'drift' : 'on'; tiles.push(t); host.append(t); }
-  const cs = $('#counters'); [['claims', 'claims checked', ''], ['segments', 'segments read', ''], ['findings', 'findings', 'alert'], ['courses_affected', 'courses affected', 'crit']].forEach(([k, label, cls]) => cs.append(el('div', { class: 'counter ' + cls, 'data-k': k }, el('span', { class: 'v num' }, nf.format(C.scan[k])), el('span', { class: 'k' }, label))));
-  tiles.forEach(t => t.classList.add(t.dataset.fate));
-  renderScanLog(false);
-}
-function logLine(list, t, who, msg, cls = '') { const li = el('li', {}, el('span', { class: 't num' }, t), el('span', { class: 'who ' + who }, who), el('span', { class: 'msg ' + cls }, msg)); list.append(li); return li; }
-function renderScanLog(animated) { const l = $('#scan-log'); l.innerHTML = ''; C.scan.log.forEach(([t, who, msg, cls], i) => { if (animated) setTimeout(() => { logLine(l, t, who, msg, cls); l.lastChild.scrollIntoView({ block: 'nearest' }); }, reduced ? 0 : 350 + i * 520); else logLine(l, t, who, msg, cls); }); }
-function renderToday() { const l = $('#today-log'); l.innerHTML = ''; if (!S.today.length) { l.append(el('li', { class: 'empty' }, 'Nothing yet. Decisions you make in the inbox show up here.')); return; } S.today.forEach(e => logLine(l, e.t, e.who, e.msg, e.cls)); }
-function animateCount(node, to, ms) { const start = performance.now(); const iv = setInterval(() => { const p = reduced ? 1 : Math.min(1, (performance.now() - start) / ms); node.textContent = nf.format(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p >= 1) clearInterval(iv); }, 32); }
-function renderActivity() { buildActivity(); renderToday(); }
-$('#replay-scan').addEventListener('click', () => {
-  buildActivity(); const T = 7200; tiles.forEach(t => { t.className = 'tile'; }); $$('#counters .counter').forEach(c => animateCount($('.v', c), C.scan[c.dataset.k], T));
-  const order = tiles.map((_, i) => i); const rnd = mulberry(7); order.sort(() => rnd() - 0.5); order.forEach((i, k) => setTimeout(() => tiles[i].classList.add(tiles[i].dataset.fate), reduced ? 0 : 400 + (k / order.length) * (T - 900)));
-  renderScanLog(true);
-});
 
 /* ── help ────────────────────────────────────────────────────────────────── */
 $('#help-body').append(
-  el('p', {}, 'You are ', el('b', {}, `${ME.name}, ${ME.role} at ${C.company.name}`), ' (fictional). It is ', el('b', {}, `${C.meta.weekday} ${fdate(C.meta.date)}, ${C.meta.time}`), '. The agents ran the first full scan of the library overnight and posted to Slack.'),
-  el('ol', {}, el('li', {}, el('b', {}, 'Slack digest.'), ' Read the 2:06 AM message. Point out: findings are grouped by course, the critical one is called out, tasks a voice can\'t fix are separate.'), el('li', {}, el('b', {}, 'Critical first.'), ' Click Open on the 🔴 message. Play the published narration (old number highlighted), then the new take (same narrator, new number). Approve & publish. Watch Slack confirm the republish.'), el('li', {}, el('b', {}, 'The rest in one click.'), ' Approve all ready. Rows publish; Slack summarizes per course; Priya N. swaps the Storyline takes and republishes a few seconds later.'), el('li', {}, el('b', {}, 'Judgment stays human.'), ' Open the 🟡 item: two sources disagree on parental leave. Pick the authoritative one. Sam from People replies.'), el('li', {}, el('b', {}, 'Tasks.'), ' Filter Tasks: the ClaimsCore screen capture and the CEO welcome video. Create the task.'), el('li', {}, el('b', {}, 'Edit script.'), ' On F3 (customer communications), open Edit script → “Use Legal\'s wording” → Re-voice. The edited take is real audio.'), el('li', {}, el('b', {}, 'Library.'), ' Working with AI at Alder: play the whole module with the four new takes spliced in. Health 44 → 100. Version note at the bottom.'), el('li', {}, el('b', {}, 'Sources and Activity.'), ' The watch list, and the audit trail of the 2:00 AM run (Replay animates it).')),
-  el('div', { class: 'keys' }, el('kbd', {}, '1 – 4'), el('span', {}, 'Inbox · Library · Sources · Activity'), el('kbd', {}, 'S'), el('span', {}, 'show / hide Slack'), el('kbd', {}, 'T'), el('span', {}, 'light / dark'), el('kbd', {}, '?'), el('span', {}, 'these notes'), el('kbd', {}, 'Reset demo'), el('span', {}, 'back to 7:42 AM')),
-  el('p', { class: 'fine' }, `All narration is real WellSaid audio (preview model) rendered ahead of time so the demo runs offline: ${Object.keys(AUDIO).length} clips. In production the re-voice step renders live in about two seconds. Library-wide counts are illustrative for this sample library. Alder Mutual, its people and policies are fictional; the drift categories are the real ones Continuity Intelligence reports.`));
+  el('p', {}, 'You are ', el('b', {}, `${ME.name}, ${ME.role} at ${C.company.name}`), ' (fictional). It is ', el('b', {}, `${C.meta.weekday} morning, ${C.meta.time}`), '. The agents checked the library overnight and posted to Slack.'),
+  el('ol', {}, el('li', {}, el('b', {}, 'The morning message.'), ' Read it aloud: 14 things out of date, 11 fixes ready, 1 judgment call, 2 for a person. Click ', el('b', {}, 'Start with the critical one'), '.'), el('li', {}, el('b', {}, 'The hotline.'), ' Read the headline and What changed. Play ', el('b', {}, 'In the course today'), ' (old number highlighted), then ', el('b', {}, 'The fix'), ' (same narrator). Approve & publish. Read the green result.'), el('li', {}, el('b', {}, 'Next → the AI course.'), ' On “AI letters need a human review”, click Edit the wording → Use Legal\'s wording → Re-record. Real audio.'), el('li', {}, el('b', {}, 'Approve all.'), ' In the queue header. Watch the list publish, then the summary. Open Slack (S) to show Priya republishing the Storyline course.'), el('li', {}, el('b', {}, 'Judgment call.'), ' Parental leave: two sources disagree. Pick the Benefits Guide.'), el('li', {}, el('b', {}, 'Needs a person.'), ' The screen recording and the CEO video. Create a task.'), el('li', {}, el('b', {}, 'Courses.'), ' Working with AI at Alder → Play the whole course: four new lines, same voice. Score 44 → 100.'), el('li', {}, el('b', {}, 'If asked how it works:'), ' the How it works panel (H) has the agents, last night\'s log, the sources, and where fixes go back.')),
+  el('div', { class: 'keys' }, el('kbd', {}, '→ / N'), el('span', {}, 'next item'), el('kbd', {}, '← / P'), el('span', {}, 'previous item'), el('kbd', {}, '1 / 2'), el('span', {}, 'Inbox / Courses'), el('kbd', {}, 'S'), el('span', {}, 'Slack panel'), el('kbd', {}, 'H'), el('span', {}, 'How it works'), el('kbd', {}, 'T'), el('span', {}, 'light / dark'), el('kbd', {}, 'Reset'), el('span', {}, 'back to 7:42 AM')),
+  el('p', { class: 'fine' }, `All narration is real WellSaid audio (preview model), rendered ahead of time so the demo runs offline: ${Object.keys(AUDIO).length} clips. In production the re-record step renders live in about two seconds. Alder Mutual, its people and policies are fictional. Library-wide counts are illustrative.`));
 
 /* ── boot ────────────────────────────────────────────────────────────────── */
-renderInbox(); refreshSidebar();
+renderMorning(); refreshBadge();
+/* deep links for the presenter: #F11 opens that item, #courses opens the courses view, #inbox the queue */
+(() => { const h = (location.hash || '').slice(1); if (h === 'courses') showView('courses'); else if (h === 'inbox') { S.current = openIds()[0]; showView('inbox'); } else if (findingById[h]) select(h); else showView('morning'); })();
 })();
