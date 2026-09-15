@@ -26,6 +26,8 @@ const segById = {}; C.courses.forEach(c => c.segments.forEach(s => { segById[s.i
 const findingById = Object.fromEntries(C.findings.map(f => [f.id, f]));
 const sourceById = Object.fromEntries(C.sources.map(s => [s.id, s]));
 const narration = f => !!f.fixed;
+const studioSection = f => `${f.segment} ${S.take[f.id] === 'alt' && f.alt ? `alt (${f.id}, Legal wording)` : `fix (${f.id})`}`;
+const studioLink = label => el('a', { class: 'lnk', href: C.links.studio_url, target: '_blank', rel: 'noopener' }, label || C.links.studio_project);
 const findingsBySeg = {}; C.findings.filter(narration).forEach(f => { (findingsBySeg[f.segment] ||= []).push(f); });
 const byCourse = {}; C.courses.forEach(c => { byCourse[c.id] = C.findings.filter(f => f.course === c.id); });
 const SEV_ORDER = { critical: 0, serious: 1, warning: 2 };
@@ -229,8 +231,8 @@ function renderReview() {
   }
   // outcome / actions
   if (st === 'publishing') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Publishing…'), el('div', { class: 'progress' }, el('i', { id: 'pub-progress' })), el('p', { id: 'pub-step' }, 'Splicing the new line into the course…')));
-  else if (st === 'published') rv.append(outcome('ok', `Published.`, `${c.title} is now ${S.versions[c.id]} in ${c.publish.target}. Completions kept. ${f.material ? (S.notify[f.id] === 'reassign' ? 'Learners re-assigned.' : S.notify[f.id] === 'notify' ? 'Learners notified.' : '') : ''} Posted to #ld-content-ops.`, true, c.id, seg.id));
-  else if (st === 'handoff') rv.append(outcome('sky', 'Sent to Priya.', 'Storyline keeps its audio inside the project file, so Priya swaps this line and republishes. About two minutes, no re-record. Slack will confirm.', true, c.id, seg.id));
+  else if (st === 'published') rv.append(outcome('ok', `Published.`, `${c.title} is now ${S.versions[c.id]} in ${c.publish.target}. Completions kept. ${f.material ? (S.notify[f.id] === 'reassign' ? 'Learners re-assigned.' : S.notify[f.id] === 'notify' ? 'Learners notified.' : '') : ''} Posted to #ld-content-ops.`, true, c.id, seg.id, f));
+  else if (st === 'handoff') rv.append(outcome('sky', 'Sent to Priya.', 'Storyline keeps its audio inside the project file, so Priya swaps this line and republishes. About two minutes, no re-record. Slack will confirm.', true, c.id, seg.id, f));
   else if (st === 'dismissed') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Kept as is.'), el('p', {}, 'Continuity won\'t flag this wording again unless the source changes.'), el('div', { class: 'row' }, el('button', { class: 'btn small', onclick: () => { S.status[f.id] = f.status === 'auto' ? 'open' : f.status; select(f.id); } }, 'Undo'), nextBtn())));
   else if (st === 'task_created') rv.append(outcome('sky', 'Task created.', `Assigned to you, due Friday, September 18. ${f.id === 'V1' ? 'The re-voiced narration waits in the Kaltura draft until the new footage is in.' : 'The narration fix publishes on its own; the video is a request to the CEO\'s office.'}`, true));
   else {
@@ -248,11 +250,12 @@ function renderReview() {
   kv.append(el('dt', {}, 'Confidence'), el('dd', {}, `${Math.round(f.confidence * 100)}% that the course is out of date`), el('dt', {}, 'Goes back to'), el('dd', {}, el('b', {}, c.publish.target), ` · ${c.publish.package} · ${S.versions[c.id] || c.publish.version}`), el('dt', {}, 'How'), el('dd', {}, c.publish.how));
   if (f.material && narration(f) && st === 'open') { const sel = el('select', { onchange: e => { S.notify[f.id] = e.target.value; } }, el('option', { value: 'notify' }, 'Notify assigned learners'), el('option', { value: 'quiet' }, 'Update quietly'), el('option', { value: 'reassign' }, 'Re-assign for re-completion')); sel.value = S.notify[f.id]; kv.append(el('dt', {}, 'Learners'), el('dd', {}, 'Material change · ', sel)); }
   kv.append(el('dt', {}, 'In Notion'), el('dd', {}, el('a', { class: 'lnk', href: f.notion, target: '_blank', rel: 'noopener' }, 'This item'), ' · ', el('a', { class: 'lnk', href: C.links.notion_inventory, target: '_blank', rel: 'noopener' }, 'Curriculum inventory'), ' · ', el('a', { class: 'lnk', href: C.links.notion_hub, target: '_blank', rel: 'noopener' }, 'Content operations hub')));
+  if (narration(f)) kv.append(el('dt', {}, 'In WellSaid Studio'), el('dd', {}, studioLink(), ` · section “${studioSection(f)}” · every published line, fix and alternate lives in this one project, on the approved voices`));
   if (st === 'published') kv.append(el('dt', {}, 'Version note'), el('dd', {}, el('pre', { class: 'vnote' }, versionNote(c))));
   d.append(kv); rv.append(d);
   r.append(rv); r.scrollTop = 0;
 }
-function outcome(kind, head, body, withNext, courseId, segId) { return el('div', { class: 'outcome' + (kind === 'sky' ? ' sky' : '') }, el('h3', {}, el('span', { class: 'ok' }, kind === 'sky' ? '→ ' : '✓ '), head), el('p', {}, body), el('div', { class: 'row' }, withNext ? nextBtn() : null, courseId ? el('button', { class: 'btn small', onclick: () => openCourse(courseId, segId) }, kind === 'sky' ? 'Open the course' : 'Open the published course') : null, el('button', { class: 'btn quiet small', onclick: () => openSheet('slack') }, 'See it in Slack'))); }
+function outcome(kind, head, body, withNext, courseId, segId, f) { return el('div', { class: 'outcome' + (kind === 'sky' ? ' sky' : '') }, el('h3', {}, el('span', { class: 'ok' }, kind === 'sky' ? '→ ' : '✓ '), head), el('p', {}, body), f && narration(f) ? el('p', { class: 'studio' }, el('b', {}, 'Saved to WellSaid Studio → '), studioLink(), ` · section “${studioSection(f)}”, ${takeVoice(f).name}`) : null, el('div', { class: 'row' }, withNext ? nextBtn() : null, courseId ? el('button', { class: 'btn small', onclick: () => openCourse(courseId, segId) }, kind === 'sky' ? 'Open the course' : 'Open the published course') : null, el('button', { class: 'btn quiet small', onclick: () => openSheet('slack') }, 'See it in Slack'))); }
 function nextBtn() { const n = nextOpen(); return n ? el('button', { class: 'btn primary', onclick: () => select(n) }, `Next: ${findingById[n].short} →`) : el('button', { class: 'btn primary', onclick: () => showView('courses') }, 'Hear the updated courses →'); }
 const lenDelta = (seg, f) => { const a = clipFor(seg.id + '_orig'), b = clipFor(takeKey(f)); if (!a || !b) return 'preserved'; const d = b.duration - a.duration; return `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} s`; };
 function editor(f) {
@@ -273,7 +276,7 @@ async function approve(id, opts = {}) {
   for (let i = 0; i < steps.length; i++) { const p = $('#pub-progress'), s = $('#pub-step'); if (p) p.style.width = ((i + 1) / steps.length * 100) + '%'; if (s) s.textContent = steps[i]; await wait(opts.fast ? 160 : 450); }
   tick(1);
   if (c.publish.handoff) { S.status[id] = 'handoff'; logToday(`Approved ${f.short} → sent to Priya N.`); if (!opts.silent) { slackPost('continuity', `📦 <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). New line + change list sent to <b>Priya N.</b>, who owns the Storyline file.`); schedulePriya(); } }
-  else { const v = bump(c); S.status[id] = 'published'; logToday(`Approved ${f.short} → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). Republished to <b>${c.publish.target}</b> as ${v}, completions kept${f.material && S.notify[id] !== 'quiet' ? `, ${c.learners.split(' ·')[0]} learners ${S.notify[id] === 'reassign' ? 're-assigned' : 'notified'}` : ''}.${f.voice_override ? ` Re-recorded in <b>${f.voice_override.name}</b>, the approved voice for ${standardFor(c).content_type.toLowerCase()}.` : ''}`); }
+  else { const v = bump(c); S.status[id] = 'published'; logToday(`Approved ${f.short} → ${c.publish.target} ${v}`); if (!opts.silent) slackPost('continuity', `✅ <b>${ME.name}</b> approved a fix in <i>${c.title}</i> (${f.short}). Republished to <b>${c.publish.target}</b> as ${v}, completions kept${f.material && S.notify[id] !== 'quiet' ? `, ${c.learners.split(' ·')[0]} learners ${S.notify[id] === 'reassign' ? 're-assigned' : 'notified'}` : ''}.${f.voice_override ? ` Re-recorded in <b>${f.voice_override.name}</b>, the approved voice for ${standardFor(c).content_type.toLowerCase()}.` : ''} Take saved in <b>WellSaid Studio</b>.`); }
   if (!opts.quietUI) { renderQueue(); if (S.current === id) renderReview(); }
 }
 let priyaTimer = 0;
@@ -319,6 +322,7 @@ function renderSummary(nFixes, nCourses) {
   r.append(el('div', { class: 'rv summary' },
     el('h1', { class: 'rv-headline' }, `Done. ${approvedTotal} lines re-recorded this morning, ${nCourses} courses going back out.`),
     el('div', { class: 'stats' }, el('div', { class: 'stat good' }, el('span', { class: 'v num' }, approvedTotal), el('span', { class: 'k' }, 'fixes approved, same five narrators')), el('div', { class: 'stat good' }, el('span', { class: 'v num' }, nCourses), el('span', { class: 'k' }, 'courses republished as new versions, completions kept')), el('div', { class: 'stat' }, el('span', { class: 'v num' }, '0'), el('span', { class: 'k' }, 'studio sessions, re-records or timeline edits'))),
+    el('p', { class: 'muted studio-note' }, 'Every re-recorded take is also saved in WellSaid Studio → ', studioLink(), ': one project, a section per line, on the approved voices.'),
     left.length ? el('div', {}, el('p', { class: 'eyebrow', style: 'margin-bottom:10px' }, 'Still yours'), still) : null,
     el('div', { class: 'rv-actions' }, left.length ? el('button', { class: 'btn primary', onclick: () => select(left[0]) }, `Next: ${findingById[left[0]].short} →`) : null, el('button', { class: 'btn', onclick: () => showView('courses') }, 'Hear the updated courses'), el('button', { class: 'btn quiet', onclick: () => openSheet('slack') }, 'See it in Slack'))));
 }
@@ -382,6 +386,7 @@ seedSlack();
   h.append(el('div', {}, el('h3', {}, 'Sources being watched'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...[...C.sources].sort((a, b) => b.date.localeCompare(a.date)).map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.change)), el('span', { class: 'when' }, `moved ${fshort(s.date)}`))), ...C.unchanged_sources.map(s => el('li', {}, el('span', {}, el('b', {}, s.name), el('span', {}, s.system)), el('span', { class: 'when ok' }, 'unchanged'))))));
   h.append(el('div', {}, el('h3', {}, 'Where the fix goes back'), el('ul', { class: 'srcs', style: 'margin-top:10px' }, ...C.courses.map(c => el('li', {}, el('span', {}, el('b', {}, `${c.title} · ${c.format}`), el('span', {}, c.publish.how)), el('span', { class: 'when ok' }, c.publish.package))))));
   h.append(el('p', { class: 'muted', style: 'font-size:13px' }, 'SCORM is the container, not the fix: the fix goes into the source and the package is the new version the LMS receives.'));
+  h.append(el('p', { class: 'muted', style: 'font-size:13px' }, 'Every take also lands in WellSaid Studio → ', studioLink(), ': one project, a section per published line, fix and alternate, each on the course\'s approved voice. Re-voiced versions are stored where the audio team already works.'));
 })();
 
 /* ── courses view ────────────────────────────────────────────────────────── */

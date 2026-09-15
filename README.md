@@ -55,7 +55,9 @@ Every review card's course title is a link, and every green outcome has **Open t
 
 ## WellSaid Studio
 
-The demo's audio was rendered through the WellSaid API, which has no notion of Studio projects (its clips endpoint stores rendered clips, not projects). To hold the same lines in Studio, `studio-import/` has one script file per course (one paragraph per section, labelled with segment id, published/fix, and voice) plus a README with the voice to set per project. Import or paste each file into a new Studio project named after the course, set the voice on section 1, and generate.
+Every line in the demo also lives in one WellSaid Studio project, **[Alder Mutual · Drift Inbox (TechLearn 2026)](https://studio.wellsaidlabs.com/dashboard/studio/7d97f75c-e91a-489a-a857-a3c436524b45)**: 34 sections, one per published line, fix and Legal-wording alternate, named by segment and take (`A3 fix (F1)`, `A6 alt (F3, Legal wording)`, `E1 published`), grouped by course A→E. Each section carries the course's approved voice from the Notion standard (Wade C., Ava M., Sofia H., Patrick K., Rayna C.; the Agent Onboarding fix is in Patrick K.), all on the Caruso model, Narration style. In the site, an approval says "Saved to WellSaid Studio → project · section …" under the LMS republish, the Details panel has an "In WellSaid Studio" row, and the batch summary and How it works panel link the project (`links.studio_url` in `src/content.json`).
+
+How it was built (the public API has no project endpoints, so this went through the Studio UI): `studio-import/import/*-plain.txt` hold one paragraph per section per voice group; Studio's **Import script → Split by paragraphs** turns each into sections named "Section N", which were renamed, then voices were applied one click at a time from the right rail (favorite the five voices once in the Voices modal; the rail applies voice + Narration style to the focused section). New sections inherit the previous section's voice.
 
 ## Real Slack, optional
 

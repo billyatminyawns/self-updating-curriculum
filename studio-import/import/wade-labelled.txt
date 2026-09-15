@@ -1,0 +1,35 @@
+A2 published
+Generative AI tools produce text, images, and code from a prompt. They're fast, they're confident, and they're sometimes wrong. That's why our policy is about judgment as much as it is about tools.
+
+A3 published
+Right now, generative AI tools like ChatGPT are not approved for business use at Alder. Don't use them for work tasks, even on a personal device.
+
+A3 fix (F1)
+Two generative AI tools are approved for business use at Alder: Microsoft 365 Copilot and Alder Assist. Other tools, including personal ChatGPT accounts, stay off-limits for work tasks.
+
+A4 published
+Never enter customer or policyholder information into any AI tool. That includes names, policy numbers, claim details, and anything from a customer file.
+
+A4 fix (F2)
+Customer and policyholder information may be used only in the approved tools, where it stays inside Alder's environment. Never enter it into any other AI tool, including personal accounts.
+
+A5 published
+AI output is a draft, not a decision. Check the facts, check the tone, and check that nothing confidential slipped in before anything leaves your hands.
+
+A6 published
+If you use AI to help draft an email or letter to a customer, you don't need to disclose it, but you are responsible for every word.
+
+A6 fix (F3)
+If you use AI to help draft an email or letter to a customer, a person must review it before it's sent, and you are responsible for every word.
+
+A6 alt (F3, Legal wording)
+If you use AI to help draft an email or letter to a customer, it must be reviewed by a person before it is sent, and you are responsible for every word.
+
+A7 published
+If you're not sure whether a use is allowed, ask before you act. Questions go to the AI Council through the Ask AI Council channel in Slack.
+
+A7 fix (F4)
+If you're not sure whether a use is allowed, ask before you act. Questions go to the Responsible AI Office through the responsible-AI channel in Slack.
+
+A8 published
+That's the policy in fifteen minutes. Protect customer information, use your judgment, and ask when you're not sure. Next up, a short knowledge check.

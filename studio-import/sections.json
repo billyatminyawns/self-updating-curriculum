@@ -1,0 +1,172 @@
+[
+ {
+  "name": "A1 published",
+  "voice": "Wade C.",
+  "text": "Welcome to Working with AI at Alder. In the next fifteen minutes, we'll cover what generative AI is, where it fits in your work, and the rules that keep our customers' information safe."
+ },
+ {
+  "name": "A2 published",
+  "voice": "Wade C.",
+  "text": "Generative AI tools produce text, images, and code from a prompt. They're fast, they're confident, and they're sometimes wrong. That's why our policy is about judgment as much as it is about tools."
+ },
+ {
+  "name": "A3 published",
+  "voice": "Wade C.",
+  "text": "Right now, generative AI tools like ChatGPT are not approved for business use at Alder. Don't use them for work tasks, even on a personal device."
+ },
+ {
+  "name": "A3 fix (F1)",
+  "voice": "Wade C.",
+  "text": "Two generative AI tools are approved for business use at Alder: Microsoft 365 Copilot and Alder Assist. Other tools, including personal ChatGPT accounts, stay off-limits for work tasks."
+ },
+ {
+  "name": "A4 published",
+  "voice": "Wade C.",
+  "text": "Never enter customer or policyholder information into any AI tool. That includes names, policy numbers, claim details, and anything from a customer file."
+ },
+ {
+  "name": "A4 fix (F2)",
+  "voice": "Wade C.",
+  "text": "Customer and policyholder information may be used only in the approved tools, where it stays inside Alder's environment. Never enter it into any other AI tool, including personal accounts."
+ },
+ {
+  "name": "A5 published",
+  "voice": "Wade C.",
+  "text": "AI output is a draft, not a decision. Check the facts, check the tone, and check that nothing confidential slipped in before anything leaves your hands."
+ },
+ {
+  "name": "A6 published",
+  "voice": "Wade C.",
+  "text": "If you use AI to help draft an email or letter to a customer, you don't need to disclose it, but you are responsible for every word."
+ },
+ {
+  "name": "A6 fix (F3)",
+  "voice": "Wade C.",
+  "text": "If you use AI to help draft an email or letter to a customer, a person must review it before it's sent, and you are responsible for every word."
+ },
+ {
+  "name": "A6 alt (F3, Legal wording)",
+  "voice": "Wade C.",
+  "text": "If you use AI to help draft an email or letter to a customer, it must be reviewed by a person before it is sent, and you are responsible for every word."
+ },
+ {
+  "name": "A7 published",
+  "voice": "Wade C.",
+  "text": "If you're not sure whether a use is allowed, ask before you act. Questions go to the AI Council through the Ask AI Council channel in Slack."
+ },
+ {
+  "name": "A7 fix (F4)",
+  "voice": "Wade C.",
+  "text": "If you're not sure whether a use is allowed, ask before you act. Questions go to the Responsible AI Office through the responsible-AI channel in Slack."
+ },
+ {
+  "name": "A8 published",
+  "voice": "Wade C.",
+  "text": "That's the policy in fifteen minutes. Protect customer information, use your judgment, and ask when you're not sure. Next up, a short knowledge check."
+ },
+ {
+  "name": "B1 published",
+  "voice": "Ava M.",
+  "text": "In this walkthrough, you'll settle a total-loss auto claim in ClaimsCore, from valuation to payment. Start from the claim file."
+ },
+ {
+  "name": "B2 published",
+  "voice": "Ava M.",
+  "text": "From the left navigation, open the Payments tab. The settlement worksheet opens, with the vehicle valuation on the right."
+ },
+ {
+  "name": "B2 fix (F5)",
+  "voice": "Ava M.",
+  "text": "From the left navigation, open the Settlement menu and choose Total Loss. The settlement worksheet opens, with the vehicle valuation on the right."
+ },
+ {
+  "name": "B3 published",
+  "voice": "Ava M.",
+  "text": "Confirm the actual cash value, then apply the deductible and any lienholder payoff. The net amount updates as you go."
+ },
+ {
+  "name": "B4 published",
+  "voice": "Ava M.",
+  "text": "If the settlement needs a supervisor's approval, select Hold for Review. The claim waits in the queue until your supervisor signs off."
+ },
+ {
+  "name": "B4 fix (F6)",
+  "voice": "Ava M.",
+  "text": "If the settlement needs a supervisor's approval, select Pend. The claim waits in the queue until your supervisor signs off."
+ },
+ {
+  "name": "B5 published",
+  "voice": "Ava M.",
+  "text": "Review the salvage and title steps before you issue payment. Each step has to be acknowledged, or the payment button stays gray."
+ },
+ {
+  "name": "B6 published",
+  "voice": "Ava M.",
+  "text": "Once approved, the payment posts to the claim, and the customer receives a settlement letter automatically. That completes the walkthrough."
+ },
+ {
+  "name": "C2 published",
+  "voice": "Sofia H.",
+  "text": "Alder is remote-first. Most teams gather in the Austin or Dallas office two days a week, on anchor days your manager sets."
+ },
+ {
+  "name": "C2 fix (F7)",
+  "voice": "Sofia H.",
+  "text": "Alder works hybrid. Teams based in Austin and Dallas are in the office three days a week, Tuesday through Thursday, with exceptions approved by your manager."
+ },
+ {
+  "name": "C3 published",
+  "voice": "Sofia H.",
+  "text": "Alder is led by chief executive Elena Marsh and a leadership team that started out in claims, underwriting, and the field."
+ },
+ {
+  "name": "C3 fix (F8)",
+  "voice": "Sofia H.",
+  "text": "Alder is led by chief executive Priya Raman and a leadership team that started out in claims, underwriting, and the field."
+ },
+ {
+  "name": "C5 published",
+  "voice": "Sofia H.",
+  "text": "Parents get twelve weeks of paid parental leave, and Alder matches your 401(k) contributions up to four percent."
+ },
+ {
+  "name": "C5 fix (F9)",
+  "voice": "Sofia H.",
+  "text": "Parents get sixteen weeks of paid parental leave, and Alder matches your 401(k) contributions up to four percent."
+ },
+ {
+  "name": "C6 published",
+  "voice": "Sofia H.",
+  "text": "Book travel and file expenses in Concur. Receipts are required for anything over seventy-five dollars."
+ },
+ {
+  "name": "C6 fix (F10)",
+  "voice": "Sofia H.",
+  "text": "Book travel and file expenses in Navan. Receipts are required for anything over twenty-five dollars."
+ },
+ {
+  "name": "D1 published",
+  "voice": "Patrick K.",
+  "text": "Speaking up is how we protect each other and the people we insure. This lesson covers what to report, how to report it, and what happens next."
+ },
+ {
+  "name": "D2 published",
+  "voice": "Patrick K.",
+  "text": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at 1-800-555-0142, twenty-four hours a day."
+ },
+ {
+  "name": "D2 fix (F11)",
+  "voice": "Patrick K.",
+  "text": "You can report a concern to your manager, to People Operations, or anonymously through the Speak Up line at 1-855-555-0199, or at speakup.aldermutual.com, twenty-four hours a day."
+ },
+ {
+  "name": "E1 published",
+  "voice": "Rayna C.",
+  "text": "Before your first sale, complete three foundations: Security Basics 2023, Insurance Fundamentals, and HomeShield Plus product training. HomeShield Plus is our flagship homeowners policy, with water backup available as an add-on."
+ },
+ {
+  "name": "E1 fix (F12)",
+  "voice": "Patrick K.",
+  "text": "Before your first sale, complete three foundations: Security Essentials 2026, Insurance Fundamentals, and HomeShield Complete product training. HomeShield Complete is our flagship homeowners policy, and water backup coverage is now included as standard."
+ }
+]

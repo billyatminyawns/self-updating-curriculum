@@ -1160,7 +1160,9 @@
     "notion_hub": "https://app.notion.com/p/3cf8c842c02a81678c15d5157960e749",
     "notion_inventory": "https://app.notion.com/p/87da156c8c5f4354b4694c09699c90fe",
     "notion_findings": "https://app.notion.com/p/59ab598c5f65438da96a5b6a77f02d7b",
-    "notion_standards": "https://app.notion.com/p/3548a80ed1dd4e18a5769dc298ed48eb"
+    "notion_standards": "https://app.notion.com/p/3548a80ed1dd4e18a5769dc298ed48eb",
+    "studio_url": "https://studio.wellsaidlabs.com/dashboard/studio/7d97f75c-e91a-489a-a857-a3c436524b45",
+    "studio_project": "Alder Mutual · Drift Inbox (TechLearn 2026)"
   },
   "voice_standards": [
     {
