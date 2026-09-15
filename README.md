@@ -37,6 +37,10 @@ Dashboard keys: `→`/`N` next item, `1`/`2` Inbox/Courses, `S` Slack panel, `H`
 
 The demo (and the deck) use the Continuity Intelligence dashboard palette: pale gray page, white cards, dark slate text, amber for the active item and for drift, red for critical, blue for what changed and for Continuity, green for fixes and WellSaid, purple for things a person has to do. Tokens live at the top of `src/styles.css`; the dark theme is a secondary set under `[data-theme="dark"]`.
 
+## Notion boards
+
+The Notion hub opens on three Kanban boards: fixes by stage, fixes by owner, and courses by status (columns ordered as a workflow: Out of date → Review due → In progress → With course owner → Republished → Current), then the Voice & style standards. The prose (how the loop runs, the Slack digest, where the fix goes back, presenter notes) sits in toggles, and the underlying tables are at the bottom under "All records".
+
 ## Notion and the site work together
 
 The Notion hub is the team's system of record; the site is the agent's inbox. Every finding card in Notion has **Open in Drift Inbox** (deep link to that item, e.g. `#F11`); every course row has one too (`#course-A`). On the site, each item's Details section links back to its Notion card, the Curriculum inventory and the hub, and the How it works panel links to the Voice & style standards. Same 14 findings, same owners (Jordan Ellis, Priya N.), same voices.
@@ -45,9 +49,9 @@ The Notion hub is the team's system of record; the site is the agent's inbox. Ev
 
 `voice_standards` in `src/content.json` says which WellSaid voice is approved for which content type (Patrick K. external training and compliance, Ava M. internal how-to, Wade C. company policy, Sofia H. onboarding; Rayna C. retired). Each course carries a `standard`; the site shows whether its narrator is approved. A finding can carry `voice_override`, and the fix is then rendered in that voice: the Agent Onboarding path (external training, narrated by the retired Rayna C.) gets its fix in Patrick K. The Notion database *Voice & style standards* holds the same table plus the script style rules and pronunciation library.
 
-## Finding the published course
+## Seeing the actual course
 
-Every review card's course title is a link to that course's page (`#course-A` … `#course-E`), and every green outcome has **Open the published course**. The course page is framed as the LMS page: an *Alder Learn* breadcrumb, the live version, who republished it and when, then the lines with play buttons (new lines in the approved voice) and the version note. There is no real LMS behind it; the version and time come from what you approved in the demo.
+Every review card's course title is a link, and every green outcome has **Open the published course**. It opens a learner-facing course player framed as the LMS course (Alder Learn breadcrumb, live version, "Signed in as a learner"): a lesson menu on the left with progress, the slide for the current lesson (heading, on-screen text, illustration; the ClaimsCore course shows the screen recording with a timeline), the narration bar with captions that follow the audio, Previous / Next, and **Play course from here**. Lessons whose line was re-recorded carry an *updated* chip. **Author view** adds what changed in this version, the changed words highlighted in the captions, a button to play the previous take, the open screen-capture task, and the version note. The player is a stand-in for a SCORM course in an LMS; there is no real LMS behind it.
 
 ## WellSaid Studio
 
