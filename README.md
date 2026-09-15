@@ -45,6 +45,14 @@ The Notion hub is the team's system of record; the site is the agent's inbox. Ev
 
 `voice_standards` in `src/content.json` says which WellSaid voice is approved for which content type (Patrick K. external training and compliance, Ava M. internal how-to, Wade C. company policy, Sofia H. onboarding; Rayna C. retired). Each course carries a `standard`; the site shows whether its narrator is approved. A finding can carry `voice_override`, and the fix is then rendered in that voice: the Agent Onboarding path (external training, narrated by the retired Rayna C.) gets its fix in Patrick K. The Notion database *Voice & style standards* holds the same table plus the script style rules and pronunciation library.
 
+## Finding the published course
+
+Every review card's course title is a link to that course's page (`#course-A` … `#course-E`), and every green outcome has **Open the published course**. The course page is framed as the LMS page: an *Alder Learn* breadcrumb, the live version, who republished it and when, then the lines with play buttons (new lines in the approved voice) and the version note. There is no real LMS behind it; the version and time come from what you approved in the demo.
+
+## WellSaid Studio
+
+The demo's audio was rendered through the WellSaid API, which has no notion of Studio projects (its clips endpoint stores rendered clips, not projects). To hold the same lines in Studio, `studio-import/` has one script file per course (one paragraph per section, labelled with segment id, published/fix, and voice) plus a README with the voice to set per project. Import or paste each file into a new Studio project named after the course, set the voice on section 1, and generate.
+
 ## Real Slack, optional
 
 The Slack panel in the demo is simulated. To post for real during the talk: in your Slack workspace create a channel (for example `#ld-content-ops`), add an app with an **Incoming Webhook** pointing at it, open the demo's Slack panel (`S`) and paste the webhook URL into **Connect**. From then on every approval, hand-off, task and judgment call the demo posts also lands in the real channel (the built-in panel keeps working offline). The webhook URL is stored only in that browser.
