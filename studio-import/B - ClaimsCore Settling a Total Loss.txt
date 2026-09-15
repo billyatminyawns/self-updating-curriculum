@@ -1,0 +1,15 @@
+[B1 · 0:00 · Start from the claim · published] In this walkthrough, you'll settle a total-loss auto claim in ClaimsCore, from valuation to payment. Start from the claim file.
+
+[B2 · 0:14 · Open the worksheet · published] From the left navigation, open the Payments tab. The settlement worksheet opens, with the vehicle valuation on the right.
+
+[B2 · fix F5 · Ava M.] From the left navigation, open the Settlement menu and choose Total Loss. The settlement worksheet opens, with the vehicle valuation on the right.
+
+[B3 · 0:31 · Confirm the numbers · published] Confirm the actual cash value, then apply the deductible and any lienholder payoff. The net amount updates as you go.
+
+[B4 · 0:52 · Route for approval · published] If the settlement needs a supervisor's approval, select Hold for Review. The claim waits in the queue until your supervisor signs off.
+
+[B4 · fix F6 · Ava M.] If the settlement needs a supervisor's approval, select Pend. The claim waits in the queue until your supervisor signs off.
+
+[B5 · 1:10 · Salvage and title · published] Review the salvage and title steps before you issue payment. Each step has to be acknowledged, or the payment button stays gray.
+
+[B6 · 1:28 · Issue payment · published] Once approved, the payment posts to the claim, and the customer receives a settlement letter automatically. That completes the walkthrough.

@@ -308,3 +308,9 @@ details.more[open] summary::before{transform:rotate(90deg)}
 .rules{display:grid;gap:6px;margin-top:12px;padding-left:18px;list-style:disc;font-size:14px;color:var(--ink-2)}
 .how-body a.lnk,.kv a.lnk{color:var(--sky-text);text-decoration:none;font-weight:600} .how-body a.lnk:hover,.kv a.lnk:hover{text-decoration:underline}
 .ccard .m.okv{color:var(--mint-text)} .ccard .m.badv{color:var(--serious-text)}
+
+/* course page as the LMS page */
+.course-link{color:inherit;text-decoration:none;border-bottom:1px dashed var(--ink-3)} .course-link:hover{color:var(--sky-text);border-bottom-color:var(--sky-text)}
+.lms-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;background:var(--bg-3);border:1px solid var(--line-2);font-size:13.5px;color:var(--ink-2)}
+.lms-name{font-weight:700;color:var(--ink);letter-spacing:.02em} .lms-crumb{color:var(--ink-3)} .lms-bar .chip{margin-left:auto}
+.pubnote{margin-top:4px;color:var(--ink-3)}

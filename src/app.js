@@ -210,7 +210,7 @@ function renderReview() {
   const r = $('#review'); r.innerHTML = ''; const f = findingById[S.current]; if (!f) return;
   const seg = segById[f.segment], c = courseById[f.course], srcs = f.sources.map(id => sourceById[id]), st = S.status[f.id];
   const rv = el('div', { class: 'rv' });
-  rv.append(el('div', { class: 'rv-top' }, el('p', { class: 'rv-where' }, el('b', {}, c.title), ` · ${seg.where} · narrated by ${c.voice.name}`), el('span', { class: 'chip ' + f.severity }, f.severity === 'critical' ? 'Critical' : f.severity === 'serious' ? 'Needs fixing' : 'Minor')));
+  rv.append(el('div', { class: 'rv-top' }, el('p', { class: 'rv-where' }, el('a', { class: 'course-link', href: '#course-' + c.id, onclick: e => { e.preventDefault(); openCourse(c.id); } }, el('b', {}, c.title)), ` · ${seg.where} · narrated by ${c.voice.name}`), el('span', { class: 'chip ' + f.severity }, f.severity === 'critical' ? 'Critical' : f.severity === 'serious' ? 'Needs fixing' : 'Minor')));
   rv.append(el('h1', { class: 'rv-headline' }, f.headline));
   // what changed
   const s0 = srcs[0];
@@ -229,8 +229,8 @@ function renderReview() {
   }
   // outcome / actions
   if (st === 'publishing') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Publishing…'), el('div', { class: 'progress' }, el('i', { id: 'pub-progress' })), el('p', { id: 'pub-step' }, 'Splicing the new line into the course…')));
-  else if (st === 'published') rv.append(outcome('ok', `Published.`, `${c.title} is now ${S.versions[c.id]} in ${c.publish.target}. Completions kept. ${f.material ? (S.notify[f.id] === 'reassign' ? 'Learners re-assigned.' : S.notify[f.id] === 'notify' ? 'Learners notified.' : '') : ''} Posted to #ld-content-ops.`, true));
-  else if (st === 'handoff') rv.append(outcome('sky', 'Sent to Priya.', 'Storyline keeps its audio inside the project file, so Priya swaps this line and republishes. About two minutes, no re-record. Slack will confirm.', true));
+  else if (st === 'published') rv.append(outcome('ok', `Published.`, `${c.title} is now ${S.versions[c.id]} in ${c.publish.target}. Completions kept. ${f.material ? (S.notify[f.id] === 'reassign' ? 'Learners re-assigned.' : S.notify[f.id] === 'notify' ? 'Learners notified.' : '') : ''} Posted to #ld-content-ops.`, true, c.id));
+  else if (st === 'handoff') rv.append(outcome('sky', 'Sent to Priya.', 'Storyline keeps its audio inside the project file, so Priya swaps this line and republishes. About two minutes, no re-record. Slack will confirm.', true, c.id));
   else if (st === 'dismissed') rv.append(el('div', { class: 'outcome plain' }, el('h3', {}, 'Kept as is.'), el('p', {}, 'Continuity won\'t flag this wording again unless the source changes.'), el('div', { class: 'row' }, el('button', { class: 'btn small', onclick: () => { S.status[f.id] = f.status === 'auto' ? 'open' : f.status; select(f.id); } }, 'Undo'), nextBtn())));
   else if (st === 'task_created') rv.append(outcome('sky', 'Task created.', `Assigned to you, due Friday, September 18. ${f.id === 'V1' ? 'The re-voiced narration waits in the Kaltura draft until the new footage is in.' : 'The narration fix publishes on its own; the video is a request to the CEO\'s office.'}`, true));
   else {
@@ -252,7 +252,8 @@ function renderReview() {
   d.append(kv); rv.append(d);
   r.append(rv); r.scrollTop = 0;
 }
-function outcome(kind, head, body, withNext) { return el('div', { class: 'outcome' + (kind === 'sky' ? ' sky' : '') }, el('h3', {}, el('span', { class: 'ok' }, kind === 'sky' ? '→ ' : '✓ '), head), el('p', {}, body), el('div', { class: 'row' }, withNext ? nextBtn() : null, el('button', { class: 'btn quiet small', onclick: () => openSheet('slack') }, 'See it in Slack'))); }
+function outcome(kind, head, body, withNext, courseId) { return el('div', { class: 'outcome' + (kind === 'sky' ? ' sky' : '') }, el('h3', {}, el('span', { class: 'ok' }, kind === 'sky' ? '→ ' : '✓ '), head), el('p', {}, body), el('div', { class: 'row' }, withNext ? nextBtn() : null, courseId ? el('button', { class: 'btn small', onclick: () => openCourse(courseId) }, kind === 'sky' ? 'Open the course' : 'Open the published course') : null, el('button', { class: 'btn quiet small', onclick: () => openSheet('slack') }, 'See it in Slack'))); }
+function openCourse(id) { S.course = id; showView('courses'); const d = $('#course-detail'); d && d.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }); }
 function nextBtn() { const n = nextOpen(); return n ? el('button', { class: 'btn primary', onclick: () => select(n) }, `Next: ${findingById[n].short} →`) : el('button', { class: 'btn primary', onclick: () => showView('courses') }, 'Hear the updated courses →'); }
 const lenDelta = (seg, f) => { const a = clipFor(seg.id + '_orig'), b = clipFor(takeKey(f)); if (!a || !b) return 'preserved'; const d = b.duration - a.duration; return `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} s`; };
 function editor(f) {
@@ -410,7 +411,9 @@ function renderCourseDetail(c) {
   let all = false; const allVoiced = c.segments.every(s => clipFor(rows[s.id].key));
   const allBtn = el('button', { class: 'btn primary', disabled: !allVoiced, title: allVoiced ? '' : 'Only the flagged lines of this course carry audio in the offline demo', onclick: async () => { if (all) { all = false; stopAll(); allBtn.textContent = 'Play the whole course'; return; } all = true; allBtn.textContent = 'Stop'; for (const s of c.segments) { if (!all) break; const ok = await playRow(s.id); if (!ok) break; await wait(300); } all = false; allBtn.textContent = 'Play the whole course'; $$('.segrow', list).forEach(x => x.classList.remove('active')); } }, 'Play the whole course');
   const newCount = c.segments.filter(s => (findingsBySeg[s.id] || []).some(f => S.status[f.id] === 'published')).length;
-  d.append(el('div', { class: 'cd-head' }, el('div', {}, el('h2', {}, c.title), el('p', { class: 'm' }, `${c.format} · ${c.learners} · ${c.segments.length} narration lines · ${voiceLine(c)}`)), el('div', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'muted', style: 'font-size:14px' }, `${newCount} new line${newCount === 1 ? '' : 's'}, ${c.segments.length - newCount} untouched`))),
+  const pubTime = S.versions[c.id] ? clockStr() : null;
+  d.append(el('div', { class: 'lms-bar' }, el('span', { class: 'lms-name' }, c.publish.target), el('span', { class: 'lms-crumb' }, `› ${c.format.split(' ·')[0]} › ${c.title}`), S.versions[c.id] ? el('span', { class: 'chip good' }, `Live · ${S.versions[c.id]}`) : el('span', { class: 'chip' }, `Live · ${c.publish.version.split('→')[0].trim()} (out of date)`)),
+    el('div', { class: 'cd-head' }, el('div', {}, el('h2', {}, c.title), el('p', { class: 'm' }, `${c.format} · ${c.learners} · ${c.segments.length} narration lines · ${voiceLine(c)}`), S.versions[c.id] ? el('p', { class: 'm pubnote' }, `Republished today at ${pubTime} by ${ME.name} as ${S.versions[c.id]} · completions kept · ${c.publish.package}`) : el('p', { class: 'm pubnote' }, `Last published ${fdate(c.updated)} · ${c.publish.package} · ${c.publish.target}`)), el('div', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' }, allBtn, el('span', { class: 'muted', style: 'font-size:14px' }, `${newCount} new line${newCount === 1 ? '' : 's'}, ${c.segments.length - newCount} untouched`))),
     st, el('div', { class: 'legend' }, el('span', {}, el('i', { class: 'fixed' }), 'new line'), el('span', {}, el('i', { class: 'verified' }), 'checked, still true'), el('span', {}, el('i', { class: 'drift' }), 'out of date'), el('span', {}, el('i', { class: 'critical' }), 'critical')), list, np,
     S.versions[c.id] ? el('details', { class: 'more' }, el('summary', {}, `Version note · ${S.versions[c.id]}`), el('pre', { class: 'vnote' }, versionNote(c))) : null);
 }
